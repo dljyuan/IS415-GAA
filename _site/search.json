@@ -32,6 +32,6 @@
     "href": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html#plotting-the-geospatial-data",
     "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
     "section": "Plotting the Geospatial Data",
-    "text": "Plotting the Geospatial Data\nHide Plot Show Code Only\n\nplot(mpsz)\n\nHide Code Show Plot Only"
+    "text": "Plotting the Geospatial Data\nHide Plot Show Code Only\n\nplot(mpsz)\n\nHide Code Show Plot Only\n\n\n\n\n\n\n\n\n\nOthers\n\nplot(st_geometry(mpsz))\n\n\n\n\n\n\n\n\n\nplot(mpsz[\"PLN_AREA_N\"])"
   }
 ]
