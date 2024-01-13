@@ -33,5 +33,19 @@
     "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
     "section": "Plotting the Geospatial Data",
     "text": "Plotting the Geospatial Data\nHide Plot Show Code Only\n\nplot(mpsz)\n\nHide Code Show Plot Only\n\n\n\n\n\n\n\n\n\nOthers\n\nplot(st_geometry(mpsz))\n\n\n\n\n\n\n\n\n\nplot(mpsz[\"PLN_AREA_N\"])"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
+    "title": "In-class_Ex01",
+    "section": "",
+    "text": "pacman:: p_load(arrow, lubridate, tidyverse, sf)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#getting-started",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#getting-started",
+    "title": "In-class_Ex01",
+    "section": "",
+    "text": "pacman:: p_load(arrow, lubridate, tidyverse, sf)"
   }
 ]
