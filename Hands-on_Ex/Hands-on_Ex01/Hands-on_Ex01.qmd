@@ -40,6 +40,7 @@ plot(mpsz)
 ```
 
 Others
+
 ```{r}
 plot(st_geometry(mpsz))
 ```
@@ -84,6 +85,7 @@ head(mpsz, n=5)
 ```
 
 # Assigning EPSG code to a simple feature data frame
+
 One of the common issue that can happen during importing geospatial data into R is that the coordinate system of the source data was either missing (such as due to missing .proj for ESRI shapefile) or wrongly assigned during the importing process.
 
 **Wrong EPSG Code**
@@ -100,18 +102,21 @@ st_crs(mpsz3414)
 ```
 
 # Transforming the projection from wgs84 to svy21.
+
 ```{r}
 preschool3414 <- st_transform(preschool, 
                               crs = 3414)
 ```
 
 # Importing the aspatial data
+
 ```{r}
 listings <- read_csv("/dljyuan/IS415-GAA/data/aspatial/listings.csv")
 list(listings) 
 ```
 
 # Creating a simple feature data frame from an aspatial data frame
+
 ```{r}
 listings_sf <- st_as_sf(listings, 
                        coords = c("longitude", "latitude"),
@@ -120,16 +125,19 @@ listings_sf <- st_as_sf(listings,
 ```
 
 Examine the content of this newly created simple feature data frame
+
 ```{r}
 glimpse(listings_sf)
 ```
 
 # Geoprocessing with sf package
+
 **Buffering**
 
 The scenario:
 
 The authority is planning to upgrade the exiting cycling path. To do so, they need to acquire 5 metres of reserved land on the both sides of the current cycling path. You are tasked to determine the extend of the land need to be acquired and their total area.
+
 ```{r}
 buffer_cycling <- st_buffer(cyclingpath, 
                                dist=5, nQuadSegs = 30)
@@ -142,6 +150,7 @@ sum(buffer_cycling$AREA)
 The scenario:
 
 A pre-school service group want to find out the numbers of pre-schools in each Planning Subzone.
+
 ```{r}
 mpsz3414$`PreSch Count`<- lengths(st_intersects(mpsz3414, preschool3414))
 summary(mpsz3414$`PreSch Count`)
@@ -155,11 +164,13 @@ mpsz3414 <- mpsz3414 %>%
 # Exploratory Data Analysis (EDA)
 
 Histogram
+
 ```{r}
 hist(mpsz3414$`PreSch Density`)
 ```
 
 ggplot2 Histogram
+
 ```{r}
 ggplot(data=mpsz3414, 
        aes(x= as.numeric(`PreSch Density`)))+
@@ -173,6 +184,7 @@ ggplot(data=mpsz3414,
 ```
 
 ggplot2 Scattered Plot
+
 ```{r}
 ggplot(data=mpsz3414, 
        aes(y = `PreSch Count`, 
