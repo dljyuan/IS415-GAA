@@ -11,5 +11,3 @@ execute:
 ```{r}
 pacman:: p_load(arrow, lubridate, tidyverse, sf)
 ```
-
-
