@@ -1,0 +1,21 @@
+---
+title: "R for Geospatial Data Science"
+execute: 
+  warning: false
+date: "`r Sys.Date()`"
+---
+
+## Getting Started
+
+**Preloading packages**
+
+```{r}
+pacman::p_load(sf, tmap, tidyverse, arrow, lubridate)
+```
+
+
+## Importing Grab-Posisi Dataset
+
+```{r}
+
+```

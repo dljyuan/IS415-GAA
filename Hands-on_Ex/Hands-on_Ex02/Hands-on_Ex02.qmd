@@ -202,6 +202,7 @@ tm_shape(mpsz_pop2020)+
 ```
 
 ## Map Legend
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY", 
@@ -222,6 +223,7 @@ tm_shape(mpsz_pop2020)+
 ```
 
 ## Map Style
+
 ```{r}
 tm_shape(mpsz_pop2020)+
   tm_fill("DEPENDENCY", 
@@ -232,8 +234,8 @@ tm_shape(mpsz_pop2020)+
 ```
 
 ## Cartographic Furniture
-**Map furniture such as compass, scale bar and grid lines**
-[tm_compass(), tm_scale_bar() and tm_grid()]
+
+**Map furniture such as compass, scale bar and grid lines** \[tm_compass(), tm_scale_bar() and tm_grid()\]
 
 ```{r}
 tm_shape(mpsz_pop2020)+
@@ -262,8 +264,8 @@ tmap_style("white")
 ```
 
 ## Drawing Small Multiple Choropleth Maps
-**Assigning multiple values to at least one of the aesthetic arguments**
-Choropleth maps are created by defining ncols in tm_fill()
+
+**Assigning multiple values to at least one of the aesthetic arguments** Choropleth maps are created by defining ncols in tm_fill()
 
 ```{r}
 tm_shape(mpsz_pop2020)+
@@ -276,6 +278,7 @@ tm_shape(mpsz_pop2020)+
 ```
 
 **Small multiple choropleth maps are created by assigning multiple values to at least one of the aesthetic arguments**
+
 ```{r}
 tm_shape(mpsz_pop2020)+ 
   tm_polygons(c("DEPENDENCY","AGED"),
@@ -317,7 +320,7 @@ agedmap <- tm_shape(mpsz_pop2020)+
 tmap_arrange(youngmap, agedmap, asp=1, ncol=2)
 ```
 
-## Mappping Spatial Object Meeting a Selection Criterion**
+## Mappping Spatial Object Meeting a Selection Criterion
 
 ```{r}
 tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N=="CENTRAL REGION", ])+
