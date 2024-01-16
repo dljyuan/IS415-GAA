@@ -1,0 +1,20 @@
+---
+title: "Nothing here"
+format: html
+editor: visual
+execute: 
+  warning: false
+margin-header: |
+    ![](/image/01.jpg){.preview-image}
+date: 01/08/2024
+date-format: "DD/MM/YYYY"
+author: "Jin Yuan"
+---
+
+## Getting Started
+
+Gitignoring large file from pushing into Github
+
+```{r}
+pacman:: p_load(arrow, lubridate, tidyverse, sf)
+```

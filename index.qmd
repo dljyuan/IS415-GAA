@@ -1,5 +1,15 @@
 ---
 title: "IS415-GAA"
+listing:
+  contents: 
+    - Hands-on_Ex 
+    - In-class_Ex
+  sort: "date desc"
+  type: grid
+  sort-ui: true
+  filter-ui: true
+margin-header: |
+    ![](/image/02.png){.preview-image}
 ---
 
 Welcome to **IS415 Geospatial Analytics and Applications**
