@@ -8,6 +8,9 @@ format:
   html:
     code-fold: true
     code-summary: "Show Code"
+    theme: 
+      light: [superhero, light.scss]
+      dark: [superhero, dark.scss]
 author: "Jin Yuan"
 date: 01/15/2024
 date-format: "DD/MM/YYYY"

@@ -78,11 +78,11 @@ $table-bg-scale:              0% !default;
 
 // Forms
 
-$input-bg:                          $contrast-bg !default;
+$input-bg:                          $body-bg !default;
 $input-disabled-color:              body-mix(80%) !default;
 $input-disabled-bg:                 $body-color !default;
 
-$input-color:                       $gray-900 !default;
+$input-color:                       $body-color !default;
 $input-border-color:                transparent !default;
 $input-border-width:                0 !default;
 

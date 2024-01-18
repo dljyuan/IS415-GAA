@@ -1,6 +1,5 @@
 ---
 title: "Nothing here"
-format: html
 editor: visual
 execute: 
   warning: false

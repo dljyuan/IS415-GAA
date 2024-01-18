@@ -1,0 +1,18 @@
+---
+title: "2nd Order Spatial Point Patterns Analysis Methods"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+format: 
+  html:
+    code-fold: true
+    code-summary: "Show Code"
+    theme: 
+      light: [superhero, light.scss]
+      dark: [superhero, dark.scss]
+author: "Jin Yuan"
+date: 01/18/2024
+date-format: "DD/MM/YYYY"
+editor: visual
+---

@@ -5,7 +5,7 @@ listing:
     - Hands-on_Ex 
     - In-class_Ex
   sort: "date desc"
-  type: grid
+  type: default
   sort-ui: true
   filter-ui: true
 margin-header: |
