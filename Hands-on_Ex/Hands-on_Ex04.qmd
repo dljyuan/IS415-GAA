@@ -229,7 +229,7 @@ plot(F_tm)
 F_tm.csr <- envelope(childcare_tm_ppp, Fest, correction = "all", nsim = 999)
 plot(F_tm.csr)
 ```
-##K-Function
+## K-Function
 **Compute K-function using Kest() [CCK]** 
 ```{r}
 K_ck = Kest(childcare_ck_ppp, correction = "Ripley")
@@ -248,7 +248,7 @@ plot(K_tm.csr, . - r ~ r,
      xlab="d", ylab="K(d)-r",
      xlim=c(0,500))
 ```
-##L-Function
+## L-Function
 **Compute L-function using Lest() [CCK]** 
 ```{r}
 L_ck = Lest(childcare_ck_ppp, correction = "Ripley")

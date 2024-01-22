@@ -1,0 +1,98 @@
+---
+title: "Kernel Density Estimation"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+author: "Jin Yuan"
+date: 01/22/2024
+date-modified: "last-modified"
+date-format: "DD/MM/YYYY"
+editor: visual
+---
+
+# Importing Packages
+```{r}
+pacman::p_load(maptools, sf, raster, spatstat, tmap, tidyverse)
+```
+
+# Reading Data
+```{r}
+childcare_sf <- st_read("../data/geospatial/CHILDCARE.geojson")%>%
+  st_transform(crs=3414)
+mpsz_sf <- st_read(dsn = "../data/geospatial/",
+                   layer="MP14_SUBZONE_WEB_PL")
+```
+# Extracting CostalOutline from MPSZ
+```{r}
+plot(mpsz_sf)
+#Dissolving Boundary Lines
+sg_sf <- mpsz_sf%>%
+  st_union()
+plot(sg_sf)
+```
+
+```{r eval=FALSE, echo=FALSE}
+```
+
+# Data Wrangling
+::: callout-note
+## Convert to Spatial Classes
+```{r eval=FALSE} 
+childcare <- as_Spatial(childcare_sf)
+mpsz <- as_Spatial(mpsz_sf)
+sg <- as_Spatial(sg_sf)
+```
+:::
+
+::: callout-note
+## Convert to Generic Spatial Object
+```{r eval=FALSE}
+childcare_sp <- as(childcare, "SpatialPoints")
+sg_sp <- as(sg, "SpatialPolygons")
+```
+:::
+## Create **ppp** Object: sf Method
+```{r}
+childcare_ppp <- as.ppp(childcare_sf)
+glimpse(childcare_ppp)
+```
+
+```{r}
+any(duplicated(childcare_ppp))
+sum(multiplicity(childcare_ppp) > 1)
+childcare_ppp_jit <- rjitter(childcare_ppp, 
+                             retry=TRUE, 
+                             nsim=1, 
+                             drop=TRUE)
+any(duplicated(childcare_ppp_jit))
+```
+## Create **owin** Object: sf Method
+```{r}
+sg_owin <- as.owin(sg_sf)
+plot(sg_owin)
+```
+
+```{r}
+childcareSG_ppp <- childcare_ppp[sg_owin]
+plot(childcareSG_ppp)
+```
+
+```{r}
+pg <- mpsz_sf %>%
+  filter(PLN_AREA_N == "PUNGGOL")
+tm <- mpsz_sf %>%
+  filter(PLN_AREA_N == "TAMPINES")
+ck <- mpsz_sf %>%
+  filter(PLN_AREA_N == "CHOA CHU KANG")
+jw <- mpsz_sf %>%
+  filter(PLN_AREA_N == "JURONG WEST")
+```
+
+```{r fig.width=16, fig.height=10}
+par(mfrow=c(2,2))
+plot(pg, main = "Punggol")
+plot(tm, main = "Tampines")
+plot(ck, main = "Choa Chu Kang")
+plot(jw, main = "Jurong West")
+```
