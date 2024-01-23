@@ -1,0 +1,265 @@
+---
+title: "Discovering geographical distribution of Grab hailing services in Singapore"
+author: "Jin Yuan"
+date: 01/22/2024
+date-modified: "last-modified"
+date-format: "DD/MM/YYYY"
+editor: visual
+---
+
+# Background
+
+In this exploration, we investigate the geographical and spatio-temporal distribution of Grab hailing services in Singapore, leveraging the rich dataset provided by GRAB known as Grab Posisi. As a significant shared taxi operator in Southeast Asia, GRAB's dataset offers a unique perspective on human mobility. This study focuses on applying Spatial Point Pattern Analyses (KDE/NKDE) to discern patterns within the dataset.
+
+# Install Packages & Importing Data
+
+## Install Necessary Packages
+
+For this exercise, we will be using the following packages:
+
+**sf** for importing, managing, and processing geospatial data through simple features.
+
+**tidyverse** for comprehensive data science tasks, including importing, wrangling, and visualizing spatial data.
+
+**spatstat** for point pattern analysis, offering a wide range of functions for exploring spatial patterns.
+
+**spNetwork** for analyzing spatial networks and their properties.
+
+**classInt** for determining class intervals for mapping and visualization purposes.
+
+**viridis** for providing color maps suitable for creating visually appealing visualizations.
+
+**maptools** for manipulating geographic data, offering a set of tools for various spatial operations.
+
+**raster** for reading, writing, manipulating, and analyzing gridded spatial data in a raster format.
+
+```{r}
+pacman::p_load(tmap, sf, tidyverse, spatstat, spNetwork, classInt, viridis,
+               maptools, raster)
+```
+
+## Importing Data
+**GrabPosisi Data (Pick Up Location)**
+```{r}
+#GrabPosisi Data
+origin_df <- read_rds("/dljyuan/IS415-GAA/data/rds/origin_df.rds")
+#destination_df <- read_rds("/dljyuan/IS415-GAA/data/rds/destination_df.rds")
+```
+
+**Boundary Data (Coastal Outline)**
+```{r}
+mpsz_sf <- st_read(dsn = "../data/geospatial/",
+                   layer="MP14_SUBZONE_WEB_PL")
+sg_sf <- mpsz_sf%>%
+  st_union()
+st_geometry(sg_sf)
+sg_sf <- st_make_valid(sg_sf)
+length(which(st_is_valid(sg_sf) == FALSE))
+```
+
+**Road Layer Data (Singapore)** 
+The following include data from Singapore, Malaysia & Brunei
+```{r eval=FALSE}
+road <- st_read(dsn="../data/geospatial",
+                   layer="gis_osm_roads_free_1")
+```
+
+Convert CRS of Coastal Outline to be the same as the Road Data
+```{r eval=FALSE}
+sg_sf <- st_transform(sg_sf, crs = st_crs(road))
+st_geometry(sg_sf)
+st_geometry(road)
+```
+
+Filter out unnecessary variables
+```{r eval=FALSE}
+network <- network[, c("osm_id", "name", "geometry")]
+origin_df <- origin_df[, c("trj_id", "rawlat", "rawlng", "accuracy", "weekday", "start_hr", "day")]
+```
+
+Extracting road data from Singapore only
+```{r eval=FALSE}
+singapore_roads <- st_intersection(network, sg_sf)
+```
+
+::: callout-note
+### Write Data for Future Extraction
+```{r}
+#| eval: false
+write_rds(singapore_roads, "/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
+```
+:::
+
+**Import SG Road Layers**
+```{r}
+singapore_roads <- read_rds("/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
+```
+
+# Data Wrangling
+**Convert Data CRS to 3414 SVY21**
+```{r}
+sg_sf <- st_transform(sg_sf, crs = 3414)
+singapore_roads <- st_transform(singapore_roads, crs = 3414)
+st_geometry(singapore_roads)
+```
+
+```{r eval=FALSE}
+tmap_mode('plot')
+tm_shape(singapore_roads) +
+  tm_lines()
+tmap_mode('plot')
+```
+
+**Convert Latitude & Longtitude to Cartisians**
+```{r}
+origin_df <- st_as_sf(origin_df, 
+                       coords = c("rawlng", "rawlat"),
+                       crs=4326) %>%
+  st_transform(crs = 3414)
+```
+
+```{r eval=FALSE}
+st_geometry(origin_df)
+tmap_mode('plot')
+tm_shape(sg_sf) +
+  tm_polygons() +
+  tm_shape(origin_df) +
+  tm_dots()
+```
+
+![](/image/THA-01.png)
+
+**Convert to Spatial Class**
+```{r}
+origin <- as_Spatial(origin_df)
+sg <- as_Spatial(sg_sf)
+```
+
+**Convert to Spatial Object**
+```{r}
+origin_sp <- as(origin, "SpatialPoints")
+sg_sp <- as(sg, "SpatialPolygons")
+```
+
+**Convert to ppp Object**
+```{r}
+origin_ppp <- as(origin_sp, "ppp")
+```
+
+**Check for duplicate or overlap points**
+```{r eval=FALSE}
+tm_shape(sg_sf) +
+  tm_polygons() +
+  tm_shape(origin) +
+  tm_dots(alpha=0.4, 
+          size=0.02)
+```
+
+![](/image/THA-02.png)
+```{r}
+any(duplicated(origin_ppp))
+sum(multiplicity(origin_ppp) > 1)
+```
+
+**Convert to owin Object**
+```{r}
+sg_owin <- as(sg_sp, "owin")
+```
+
+**Combine Grabposisi Data with Coastal Outline**
+```{r}
+origin_ppp = origin_ppp[sg_owin]
+plot(origin_ppp)
+```
+
+# Exploratory Data Analysis
+## Kernel Density Estimation (KDE)
+```{r}
+# Convert data to km as our unit of measurement
+origin_ppp.km <- rescale(origin_ppp, 1000, "km")
+```
+
+**Selecting Kernel Method** 
+
+Baddeley et. (2016) suggested the use of the bw.ppl() algorithm because in ther experience it tends to produce the more appropriate values when the pattern consists predominantly of tight clusters. But they also insist that if the purpose of once study is to detect a single tight cluster in the midst of random noise then the bw.diggle() method seems to work best.
+
+```{r eval=FALSE}
+par(mfrow=c(1,2))
+plot(density(origin_ppp.km, 
+  sigma=bw.diggle, 
+  edge=TRUE,
+  kernel="gaussian"),
+  main = "bw.diggle")
+
+plot(density(origin_ppp.km, 
+  sigma=bw.ppl, 
+  edge=TRUE,
+  kernel="gaussian"),
+  main = "bw.ppl")
+```
+
+![](/image/THA-03.png)
+```{r eval=FALSE}
+par(mfrow=c(2,2))
+plot(density(origin_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="gaussian"), 
+     main="Gaussian")
+plot(density(origin_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="epanechnikov"), 
+     main="Epanechnikov")
+plot(density(origin_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="quartic"), 
+     main="Quartic")
+plot(density(origin_ppp.km, 
+             sigma=bw.ppl, 
+             edge=TRUE, 
+             kernel="disc"), 
+     main="Disc")
+```
+
+![](images/THA-04.jpg)
+There are no much differences among the 4 kernel methods. Sticking to gaussian for this analysis.
+
+```{r eval=FALSE}
+kde_origin.ppl <- density(origin_ppp.km, 
+                               sigma=bw.ppl, 
+                               edge=TRUE,
+                               kernel="gaussian")
+```
+
+**Comparing Fixed & Adaptive KDE**
+
+```{r eval=FALSE}
+kde_origin_adaptive <- adaptive.density(origin_ppp.km, method="kernel")
+par(mfrow=c(1,2))
+plot(kde_origin.ppl, main = "Fixed bandwidth")
+plot(kde_origin_adaptive, main = "Adaptive bandwidth")
+```
+
+![](images/THA-05.png)
+**Converting KDE into grid object**
+
+```{r eval=FALSE}
+gridded_kde_origin_ppl <- as.SpatialGridDataFrame.im(kde_origin.ppl)
+kde_origin_ppl_raster <- raster(gridded_kde_origin_ppl)
+projection(kde_origin_ppl_raster) <- CRS("+init=EPSG:3414")
+```
+
+**Visualising Output Map**
+
+```{r eval=FALSE}
+tm_shape(kde_origin_ppl_raster) + 
+  tm_raster("v", palette = "YlGnBu", title="") +
+  tm_layout(
+    legend.position = c("right", "bottom"), 
+    main.title = "Pick Up Points Density",
+    frame = FALSE)
+```
+
+![](images/THA-06.png)

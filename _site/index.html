@@ -80,9 +80,9 @@ ul.task-list li input[type="checkbox"] {
     }
 
     const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-image','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      valueNames: ['listing-date','listing-title','listing-author','listing-image','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
       
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description"],
+      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};
@@ -164,8 +164,12 @@ window.Quarto = {
  <span class="dropdown-text">Hands-on Exercise 2</span></a>
   </li>  
         <li>
-    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex03.html">
- <span class="dropdown-text">Hands-on Exercise 3</span></a>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex03A.html">
+ <span class="dropdown-text">Hands-on Exercise 3A</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex03B.html">
+ <span class="dropdown-text">Hands-on Exercise 3A</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./Hands-on_Ex/Hands-on_Ex04.html">
@@ -189,6 +193,17 @@ window.Quarto = {
         <li>
     <a class="dropdown-item" href="./In-class_Ex/In-class_Ex03.html">
  <span class="dropdown-text">In-class Exercise 3</span></a>
+  </li>  
+    </ul>
+  </li>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-take-home-assignment" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Take-home Assignment</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-take-home-assignment">    
+        <li>
+    <a class="dropdown-item" href="./Take-home_Assignment/Take-home_Assignment01.html">
+ <span class="dropdown-text">Take-home Assignment 1</span></a>
   </li>  
     </ul>
   </li>
@@ -231,7 +246,7 @@ window.Quarto = {
 <p><img src=".\image/02.png" class="preview-image img-fluid"></p>
 </div></div>
         
-    </div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(9)</span></div></div></div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
@@ -287,7 +302,35 @@ window.Quarto = {
     </div>
 </div>
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-listing-date-sort="1705852800000" data-listing-file-modified-sort="1705888909793" data-listing-date-modified-sort="1705888909000" data-listing-reading-time-sort="2" data-listing-word-count-sort="233">
+<div class="quarto-post image-right" data-index="0" data-listing-date-sort="1705852800000" data-listing-file-modified-sort="1706017636239" data-listing-date-modified-sort="1706017636000" data-listing-reading-time-sort="8" data-listing-word-count-sort="1521">
+<div class="thumbnail">
+<p><a href="./Hands-on_Ex/Hands-on_Ex03B.html" class="no-external"></a></p><a href="./Hands-on_Ex/Hands-on_Ex03B.html" class="no-external">
+<p class="card-img-top"><img src="Hands-on_Ex\Hands-on_Ex03B_files\figure-html\unnamed-chunk-5-1.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./Hands-on_Ex/Hands-on_Ex03B.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./Hands-on_Ex/Hands-on_Ex03B.html" class="no-external">Network Constrained Spatial Point Patterns Analysis</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./Hands-on_Ex/Hands-on_Ex03B.html" class="no-external"></a>
+</div>
+<div class="listing-description">
+<a href="./Hands-on_Ex/Hands-on_Ex03B.html" class="no-external">We can examine the structure of the output SpatialDataFrame in RStudio. Alternative, code chunk below can be used to print the content of network <strong><em>SpatialLineDataFrame</em></strong> and…<strong></strong></a>
+</div>
+</div>
+<div class="metadata">
+<a href="./Hands-on_Ex/Hands-on_Ex03B.html" class="no-external">
+<div class="listing-date">
+Jan 22, 2024
+</div>
+<div class="listing-author">
+Jin Yuan
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="1" data-listing-date-sort="1705852800000" data-listing-file-modified-sort="1705925384553" data-listing-date-modified-sort="1705925384000" data-listing-reading-time-sort="2" data-listing-word-count-sort="232">
 <div class="thumbnail">
 <p><a href="./In-class_Ex/In-class_Ex03.html" class="no-external"></a></p><a href="./In-class_Ex/In-class_Ex03.html" class="no-external">
 <p class="card-img-top"><img src="In-class_Ex\In-class_Ex03_files\figure-html\unnamed-chunk-3-1.png"  class="thumbnail-image card-img"/></p>
@@ -320,25 +363,53 @@ Jin Yuan
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-listing-date-sort="1705507200000" data-listing-file-modified-sort="1705801196266" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2063">
+<div class="quarto-post image-right" data-index="2" data-listing-date-sort="1705852800000" data-listing-file-modified-sort="1706016073284" data-listing-date-modified-sort="1706016073000" data-listing-reading-time-sort="5" data-listing-word-count-sort="961">
 <div class="thumbnail">
-<p><a href="./Hands-on_Ex/Hands-on_Ex03.html" class="no-external"></a></p><a href="./Hands-on_Ex/Hands-on_Ex03.html" class="no-external">
-<p class="card-img-top"><img src="Hands-on_Ex\Hands-on_Ex03_files\figure-html\unnamed-chunk-6-1.png"  class="thumbnail-image card-img"/></p>
-</a><p><a href="./Hands-on_Ex/Hands-on_Ex03.html" class="no-external"></a></p>
+<p><a href="./Take-home_Assignment/Take-home_Assignment01.html" class="no-external"></a></p><a href="./Take-home_Assignment/Take-home_Assignment01.html" class="no-external">
+<p class="card-img-top"><img src="image\THA-01.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./Take-home_Assignment/Take-home_Assignment01.html" class="no-external"></a></p>
 </div>
 <div class="body">
 <h3 class="no-anchor listing-title">
-<a href="./Hands-on_Ex/Hands-on_Ex03.html" class="no-external">1st Order Spatial Point Patterns Analysis Methods</a>
+<a href="./Take-home_Assignment/Take-home_Assignment01.html" class="no-external">Discovering geographical distribution of Grab hailing services in Singapore</a>
 </h3>
 <div class="listing-subtitle">
-<a href="./Hands-on_Ex/Hands-on_Ex03.html" class="no-external"></a>
+<a href="./Take-home_Assignment/Take-home_Assignment01.html" class="no-external"></a>
 </div>
 <div class="listing-description">
-<a href="./Hands-on_Ex/Hands-on_Ex03.html" class="no-external">This hands-on exercise delves deeper into the intricacies of 1st Order Spatial Point Patterns Analysis Methods</a>
+<a href="./Take-home_Assignment/Take-home_Assignment01.html" class="no-external">In this exploration, we investigate the geographical and spatio-temporal distribution of Grab hailing services in Singapore, leveraging the rich dataset provided by GRAB…</a>
 </div>
 </div>
 <div class="metadata">
-<a href="./Hands-on_Ex/Hands-on_Ex03.html" class="no-external">
+<a href="./Take-home_Assignment/Take-home_Assignment01.html" class="no-external">
+<div class="listing-date">
+Jan 22, 2024
+</div>
+<div class="listing-author">
+Jin Yuan
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="3" data-listing-date-sort="1705507200000" data-listing-file-modified-sort="1705801196266" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2063">
+<div class="thumbnail">
+<p><a href="./Hands-on_Ex/Hands-on_Ex03A.html" class="no-external"></a></p><a href="./Hands-on_Ex/Hands-on_Ex03A.html" class="no-external">
+<p class="card-img-top"><img src="Hands-on_Ex\Hands-on_Ex03A_files\figure-html\unnamed-chunk-6-1.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./Hands-on_Ex/Hands-on_Ex03A.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./Hands-on_Ex/Hands-on_Ex03A.html" class="no-external">1st Order Spatial Point Patterns Analysis Methods</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./Hands-on_Ex/Hands-on_Ex03A.html" class="no-external"></a>
+</div>
+<div class="listing-description">
+<a href="./Hands-on_Ex/Hands-on_Ex03A.html" class="no-external">This hands-on exercise delves deeper into the intricacies of 1st Order Spatial Point Patterns Analysis Methods</a>
+</div>
+</div>
+<div class="metadata">
+<a href="./Hands-on_Ex/Hands-on_Ex03A.html" class="no-external">
 <div class="listing-date">
 Jan 18, 2024
 </div>
@@ -348,7 +419,7 @@ Jin Yuan
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="2" data-listing-date-sort="1705507200000" data-listing-file-modified-sort="1705808183719" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="704">
+<div class="quarto-post image-right" data-index="4" data-listing-date-sort="1705507200000" data-listing-file-modified-sort="1705890475763" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="705">
 <div class="thumbnail">
 <p><a href="./Hands-on_Ex/Hands-on_Ex04.html" class="no-external"></a></p><a href="./Hands-on_Ex/Hands-on_Ex04.html" class="no-external">
 <p class="card-img-top"><img src="Hands-on_Ex\Hands-on_Ex04_files\figure-html\unnamed-chunk-6-1.png"  class="thumbnail-image card-img"/></p>
@@ -376,7 +447,7 @@ Jin Yuan
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="3" data-listing-date-sort="1705248000000" data-listing-file-modified-sort="1705381018020" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1729">
+<div class="quarto-post image-right" data-index="5" data-listing-date-sort="1705248000000" data-listing-file-modified-sort="1705381018020" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="9" data-listing-word-count-sort="1729">
 <div class="thumbnail">
 <p><a href="./Hands-on_Ex/Hands-on_Ex02.html" class="no-external"></a></p><a href="./Hands-on_Ex/Hands-on_Ex02.html" class="no-external">
 <p class="card-img-top"><img src="Hands-on_Ex\Hands-on_Ex02_files\figure-html\unnamed-chunk-8-1.png"  class="thumbnail-image card-img"/></p>
@@ -401,7 +472,7 @@ Jan 15, 2024
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="4" data-listing-date-sort="1705248000000" data-listing-file-modified-sort="1705557063553" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="236">
+<div class="quarto-post image-right" data-index="6" data-listing-date-sort="1705248000000" data-listing-file-modified-sort="1705557063553" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-word-count-sort="236">
 <div class="thumbnail">
 <p><a href="./In-class_Ex/In-class_Ex02.html" class="no-external"></a></p><a href="./In-class_Ex/In-class_Ex02.html" class="no-external">
 <div class="listing-item-img-placeholder card-img-top" >&nbsp;</div>
@@ -429,7 +500,7 @@ Jin Yuan
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="5" data-listing-date-sort="1704643200000" data-listing-file-modified-sort="1705382074048" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="680">
+<div class="quarto-post image-right" data-index="7" data-listing-date-sort="1704643200000" data-listing-file-modified-sort="1705382074048" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="4" data-listing-word-count-sort="680">
 <div class="thumbnail">
 <p><a href="./Hands-on_Ex/Hands-on_Ex01.html" class="no-external"></a></p><a href="./Hands-on_Ex/Hands-on_Ex01.html" class="no-external">
 <p class="card-img-top"><img src="Hands-on_Ex\Hands-on_Ex01_files\figure-html\unnamed-chunk-4-1.png"  class="thumbnail-image card-img"/></p>
@@ -454,7 +525,7 @@ Jan 8, 2024
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="6" data-listing-date-sort="1704643200000" data-listing-file-modified-sort="1705386839414" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="11">
+<div class="quarto-post image-right" data-index="8" data-listing-date-sort="1704643200000" data-listing-file-modified-sort="1705386839414" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="11">
 <div class="thumbnail">
 <p><a href="./In-class_Ex/In-class_Ex01.html" class="no-external"></a></p><a href="./In-class_Ex/In-class_Ex01.html" class="no-external">
 <p class="card-img-top"><img src="image\01.jpg"  class="thumbnail-image card-img"/></p>

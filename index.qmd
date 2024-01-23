@@ -4,10 +4,12 @@ listing:
   contents: 
     - Hands-on_Ex 
     - In-class_Ex
+    - Take-home_Assignment
   sort: "date desc"
   type: default
   sort-ui: true
   filter-ui: true
+  categories: true
 margin-header: |
     ![](/image/02.png){.preview-image}
 ---

@@ -12,18 +12,22 @@ editor: visual
 ---
 
 # Importing Packages
+
 ```{r}
 pacman::p_load(maptools, sf, raster, spatstat, tmap, tidyverse)
 ```
 
 # Reading Data
+
 ```{r}
 childcare_sf <- st_read("../data/geospatial/CHILDCARE.geojson")%>%
   st_transform(crs=3414)
 mpsz_sf <- st_read(dsn = "../data/geospatial/",
                    layer="MP14_SUBZONE_WEB_PL")
 ```
+
 # Extracting CostalOutline from MPSZ
+
 ```{r}
 plot(mpsz_sf)
 #Dissolving Boundary Lines
@@ -36,9 +40,11 @@ plot(sg_sf)
 ```
 
 # Data Wrangling
+
 ::: callout-note
 ## Convert to Spatial Classes
-```{r eval=FALSE} 
+
+```{r eval=FALSE}
 childcare <- as_Spatial(childcare_sf)
 mpsz <- as_Spatial(mpsz_sf)
 sg <- as_Spatial(sg_sf)
@@ -47,12 +53,15 @@ sg <- as_Spatial(sg_sf)
 
 ::: callout-note
 ## Convert to Generic Spatial Object
+
 ```{r eval=FALSE}
 childcare_sp <- as(childcare, "SpatialPoints")
 sg_sp <- as(sg, "SpatialPolygons")
 ```
 :::
+
 ## Create **ppp** Object: sf Method
+
 ```{r}
 childcare_ppp <- as.ppp(childcare_sf)
 glimpse(childcare_ppp)
@@ -67,7 +76,9 @@ childcare_ppp_jit <- rjitter(childcare_ppp,
                              drop=TRUE)
 any(duplicated(childcare_ppp_jit))
 ```
+
 ## Create **owin** Object: sf Method
+
 ```{r}
 sg_owin <- as.owin(sg_sf)
 plot(sg_owin)

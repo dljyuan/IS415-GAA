@@ -11,13 +11,17 @@ editor: visual
 ---
 
 # Getting Started
+
 ## Install necessary packages
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show Code"
 pacman::p_load(sf,spatstat, raster, maptools, tmap)
 ```
+
 ## Importing Data
+
 ```{r}
 # Childcare Data
 childcare_sf <- st_read("../data/geospatial/CHILDCARE.geojson") %>%
@@ -28,7 +32,9 @@ sg_sf <- st_read(dsn = "../data/geospatial/", layer="CostalOutline")
 mpsz_sf <- st_read(dsn = "../data/geospatial/", 
                 layer = "MP14_SUBZONE_WEB_PL")
 ```
+
 ### Checking & Transforming Data
+
 ```{r}
 st_geometry(childcare_sf)
 st_geometry(sg_sf)
@@ -47,6 +53,7 @@ mpsz_sf <- st_transform(mpsz_sf, 3414)
 ```
 
 ## Mapping Spatial Data
+
 ```{r}
 tmap_mode('plot')
 tm_shape(mpsz_sf) +
@@ -55,7 +62,7 @@ tm_shape(mpsz_sf) +
   tm_dots()
 ```
 
-```{r}
+```{r eval=FALSE}
 tmap_mode('view')
 tmap_options(check.and.fix = TRUE)
 tm_shape(mpsz_sf) +
@@ -64,8 +71,11 @@ tm_shape(mpsz_sf) +
   tm_dots()
 tmap_mode('plot')
 ```
+
 ## Geospatial Data Wrangling
+
 ### Converting sf Dataframe to sp's Spatial Class
+
 ```{r}
 childcare <- as_Spatial(childcare_sf)
 sg <- as_Spatial(sg_sf)
@@ -83,19 +93,25 @@ childcare
 sg
 mpsz
 ```
+
 ### Converting sp's Spatial Class to Generic sp Format
+
 ```{r}
 childcare_sp <- as(childcare, "SpatialPoints")
 sg_sp <- as(sg, "SpatialPolygons")
 ```
+
 ### Converting Generic sp Format to Spatstat’s ppp Format
+
 ```{r}
 childcare_ppp <- as(childcare_sp, "ppp")
 childcare_ppp
 plot(childcare_ppp)
 summary(childcare_ppp)
 ```
+
 ### Handling Duplicates
+
 ```{r}
 any(duplicated(childcare_ppp))
 sum(multiplicity(childcare_ppp) > 1)
@@ -112,19 +128,25 @@ childcare_ppp_jit <- rjitter(childcare_ppp,
                              drop=TRUE)
 any(duplicated(childcare_ppp_jit))
 ```
+
 ### Create owin Object
+
 ```{r}
 sg_owin <- as(sg_sp, "owin")
 plot(sg_owin)
 summary(sg_owin)
 ```
+
 ### Combine Point Events and Owin Object
+
 ```{r}
 childcareSG_ppp = childcare_ppp[sg_owin]
 summary(childcareSG_ppp)
 plot(childcareSG_ppp)
 ```
+
 ### Extract Study Area
+
 ```{r}
 pg = mpsz[mpsz@data$PLN_AREA_N == "PUNGGOL",]
 tm = mpsz[mpsz@data$PLN_AREA_N == "TAMPINES",]
@@ -172,16 +194,20 @@ plot(childcare_tm_ppp.km, main="Tampines")
 plot(childcare_ck_ppp.km, main="Choa Chu Kang")
 plot(childcare_jw_ppp.km, main="Jurong West")
 ```
+
 # Second-Order Spatial Point Patterns Analysis
+
 ## G-Function
-**Compute G-function using Gest() [CCK]**
+
+**Compute G-function using Gest() \[CCK\]**
+
 ```{r}
 G_CK = Gest(childcare_ck_ppp, correction = "border")
 plot(G_CK, xlim=c(0,500))
 ```
+
 ::: callout-note
-**To confirm the observed spatial patterns above, a hypothesis test will be conducted.** 
-The hypothesis and test are as follows:
+**To confirm the observed spatial patterns above, a hypothesis test will be conducted.** The hypothesis and test are as follows:
 
 Ho = The distribution of childcare services at Choa Chu Kang are randomly distributed.
 
@@ -191,6 +217,7 @@ The null hypothesis will be rejected if p-value is smaller than alpha value of 0
 
 **Monte Carlo test with G-fucntion**
 :::
+
 ```{r}
 G_CK.csr <- envelope(childcare_ck_ppp, Gest, nsim = 999)
 ```
@@ -198,46 +225,55 @@ G_CK.csr <- envelope(childcare_ck_ppp, Gest, nsim = 999)
 ```{r}
 plot(G_CK.csr)
 ```
-**G-function [Tampines]**
+
+**G-function \[Tampines\]**
+
 ```{r}
 G_tm = Gest(childcare_tm_ppp, correction = "best")
 plot(G_tm)
 G_tm.csr <- envelope(childcare_tm_ppp, Gest, correction = "all", nsim = 999)
 plot(G_tm.csr)
 ```
+
 ## F-Function
-**Compute F-function using Fest() [CCK]** 
-::: callout-note
-The hypothesis and test are as follows:
+
+**Compute F-function using Fest() \[CCK\]** ::: callout-note The hypothesis and test are as follows:
 
 Ho = The distribution of childcare services at Choa Chu Kang are randomly distributed.
 
 H1= The distribution of childcare services at Choa Chu Kang are not randomly distributed.
 
-The null hypothesis will be rejected if p-value is smaller than alpha value of 0.001.
-:::
+The null hypothesis will be rejected if p-value is smaller than alpha value of 0.001. :::
+
 ```{r}
 F_CK = Fest(childcare_ck_ppp)
 plot(F_CK)
 F_CK.csr <- envelope(childcare_ck_ppp, Fest, nsim = 999)
 plot(F_CK.csr)
 ```
-**F-function [Tampines]**
+
+**F-function \[Tampines\]**
+
 ```{r}
 F_tm = Fest(childcare_tm_ppp, correction = "best")
 plot(F_tm)
 F_tm.csr <- envelope(childcare_tm_ppp, Fest, correction = "all", nsim = 999)
 plot(F_tm.csr)
 ```
+
 ## K-Function
-**Compute K-function using Kest() [CCK]** 
+
+**Compute K-function using Kest() \[CCK\]**
+
 ```{r}
 K_ck = Kest(childcare_ck_ppp, correction = "Ripley")
 plot(K_ck, . -r ~ r, ylab= "K(d)-r", xlab = "d(m)")
 K_ck.csr <- envelope(childcare_ck_ppp, Kest, nsim = 99, rank = 1, glocal=TRUE)
 plot(K_ck.csr, . - r ~ r, xlab="d", ylab="K(d)-r")
 ```
-**K-function [Tampines]**
+
+**K-function \[Tampines\]**
+
 ```{r}
 K_tm = Kest(childcare_tm_ppp, correction = "Ripley")
 plot(K_tm, . -r ~ r,
@@ -248,8 +284,11 @@ plot(K_tm.csr, . - r ~ r,
      xlab="d", ylab="K(d)-r",
      xlim=c(0,500))
 ```
+
 ## L-Function
-**Compute L-function using Lest() [CCK]** 
+
+**Compute L-function using Lest() \[CCK\]**
+
 ```{r}
 L_ck = Lest(childcare_ck_ppp, correction = "Ripley")
 plot(L_ck, . -r ~ r, 
@@ -257,7 +296,9 @@ plot(L_ck, . -r ~ r,
 L_ck.csr <- envelope(childcare_ck_ppp, Lest, nsim = 99, rank = 1, glocal=TRUE)
 plot(L_ck.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
-**L-function [Tampines]**
+
+**L-function \[Tampines\]**
+
 ```{r}
 L_tm = Lest(childcare_tm_ppp, correction = "Ripley")
 plot(L_tm, . -r ~ r, 
