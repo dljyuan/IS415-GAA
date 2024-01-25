@@ -4,13 +4,6 @@ execute:
   eval: true
   echo: true
   warning: false
-format: 
-  html:
-    code-fold: true
-    code-summary: "Show Code"
-    theme: 
-      light: [superhero, light.scss]
-      dark: [superhero, dark.scss]
 author: "Jin Yuan"
 date: 01/15/2024
 date-format: "DD/MM/YYYY"
@@ -29,6 +22,8 @@ pacman::p_load(arrow, lubridate, tidyverse, tmap, sf)
 
 ```{r}
 #| eval: false
+#| code-fold: true
+#| code-summary: "Show Code"
 df <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00000.parquet")
 ```
 

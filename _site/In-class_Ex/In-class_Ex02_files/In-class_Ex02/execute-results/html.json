@@ -1,0 +1,17 @@
+{
+  "hash": "4295206ba8fcf93f8f768f34db3a8202",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"R for Geospatial Data Science\"\nexecute: \n  eval: true\n  echo: true\n  warning: false\nformat: \n  html:\n    code-fold: true\n    code-summary: \"Show Code\"\ndate: 01/15/2024\ndate-format: \"DD/MM/YYYY\"\neditor: visual\n---\n\n\n## Getting Started\n\n**Preloading packages**\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(arrow, lubridate, tidyverse, tmap, sf)\n```\n:::\n\n\n## Importing Grab-Posisi Dataset\n\n\n::: {.cell}\n\n```{.r .cell-code}\ndf <- arrow::read_parquet(\"/dljyuan/IS415-GAA/data/GrabPosisi/part-00000.parquet\")\n```\n:::\n\n\n**Examination of Data Content**\n\n\n::: {.cell}\n\n```{.r .cell-code}\nView(df)\n```\n:::\n\n\n::: callout-note\n**As the data for the timestamp is in integer not datetime, required conversion**\n:::\n\n\n::: {.cell}\n\n```{.r .cell-code}\ndf$pingtimestamp <- as_datetime(df$pingtimestamp)\n```\n:::\n\n\n## Converting into sf tibble\n\n## Extracting trip starting locations\n\n\n::: {.cell}\n\n```{.r .cell-code}\norigin_df <- df %>%\n  group_by(trj_id) %>%\n  arrange(pingtimestamp) %>%\n  filter(row_number()==1) %>%\n  mutate(weekday = wday(pingtimestamp,\n                        label=TRUE,\n                        abbr=TRUE),\n         start_hr = factor(hour(pingtimestamp)),\n         day = factor(mday(pingtimestamp)))\n```\n:::\n\n\n## Extracting destination locations\n\n\n::: {.cell}\n\n```{.r .cell-code}\ndestination_df <- df %>%\n  group_by(trj_id) %>%\n  arrange(desc(pingtimestamp)) %>%\n  filter(row_number()==1) %>%\n  mutate(weekday = wday(pingtimestamp,\n                        label=TRUE,\n                        abbr=TRUE),\n         start_hr = factor(hour(pingtimestamp)),\n         day = factor(mday(pingtimestamp)))\n```\n:::\n\n\n## Write data\n\n\n::: {.cell}\n\n:::\n\n\n## Import data\n\n\n::: {.cell}\n\n```{.r .cell-code}\norigin_df <- read_rds(\"/dljyuan/IS415-GAA/data/rds/origin_df.rds\")\ndestination_df <- read_rds(\"/dljyuan/IS415-GAA/data/rds/destination_df.rds\")\n```\n:::\n",
+    "supporting": [
+      "In-class_Ex02_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

@@ -5,6 +5,9 @@ date: 01/22/2024
 date-modified: "last-modified"
 date-format: "DD/MM/YYYY"
 editor: visual
+categories:
+  - Take-home Assignment
+title-block-categories: false
 ---
 
 # Background
@@ -39,7 +42,9 @@ pacman::p_load(tmap, sf, tidyverse, spatstat, spNetwork, classInt, viridis,
 ```
 
 ## Importing Data
+
 **GrabPosisi Data (Pick Up Location)**
+
 ```{r}
 #GrabPosisi Data
 origin_df <- read_rds("/dljyuan/IS415-GAA/data/rds/origin_df.rds")
@@ -47,6 +52,7 @@ origin_df <- read_rds("/dljyuan/IS415-GAA/data/rds/origin_df.rds")
 ```
 
 **Boundary Data (Coastal Outline)**
+
 ```{r}
 mpsz_sf <- st_read(dsn = "../data/geospatial/",
                    layer="MP14_SUBZONE_WEB_PL")
@@ -57,33 +63,37 @@ sg_sf <- st_make_valid(sg_sf)
 length(which(st_is_valid(sg_sf) == FALSE))
 ```
 
-**Road Layer Data (Singapore)** 
-The following include data from Singapore, Malaysia & Brunei
+**Road Layer Data (Singapore)** The following include data from Singapore, Malaysia & Brunei
+
 ```{r eval=FALSE}
 road <- st_read(dsn="../data/geospatial",
                    layer="gis_osm_roads_free_1")
 ```
 
-Convert CRS of Coastal Outline to be the same as the Road Data
+Convert CRS of Road Data to be the same as the Coastal Outline (SVY21)
+
 ```{r eval=FALSE}
-sg_sf <- st_transform(sg_sf, crs = st_crs(road))
+road <- st_transform(road, crs = st_crs(sg_sf))
 st_geometry(sg_sf)
 st_geometry(road)
 ```
 
 Filter out unnecessary variables
-```{r eval=FALSE}
-network <- network[, c("osm_id", "name", "geometry")]
+
+```{r}
+#road <- road[, c("name", "geometry")]
 origin_df <- origin_df[, c("trj_id", "rawlat", "rawlng", "accuracy", "weekday", "start_hr", "day")]
 ```
 
 Extracting road data from Singapore only
+
 ```{r eval=FALSE}
-singapore_roads <- st_intersection(network, sg_sf)
+singapore_roads <- st_intersection(road, sg_sf)
 ```
 
 ::: callout-note
 ### Write Data for Future Extraction
+
 ```{r}
 #| eval: false
 write_rds(singapore_roads, "/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
@@ -91,16 +101,20 @@ write_rds(singapore_roads, "/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
 :::
 
 **Import SG Road Layers**
+
 ```{r}
 singapore_roads <- read_rds("/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
 ```
 
 # Data Wrangling
+
 **Convert Data CRS to 3414 SVY21**
+
 ```{r}
-sg_sf <- st_transform(sg_sf, crs = 3414)
-singapore_roads <- st_transform(singapore_roads, crs = 3414)
-st_geometry(singapore_roads)
+sg_sf <- st_set_crs(sg_sf, 3414)
+singapore_roads <- st_set_crs(singapore_roads, 3414)
+st_crs(sg_sf)
+st_crs(singapore_roads)
 ```
 
 ```{r eval=FALSE}
@@ -111,6 +125,7 @@ tmap_mode('plot')
 ```
 
 **Convert Latitude & Longtitude to Cartisians**
+
 ```{r}
 origin_df <- st_as_sf(origin_df, 
                        coords = c("rawlng", "rawlat"),
@@ -130,23 +145,28 @@ tm_shape(sg_sf) +
 ![](/image/THA-01.png)
 
 **Convert to Spatial Class**
+
 ```{r}
 origin <- as_Spatial(origin_df)
 sg <- as_Spatial(sg_sf)
+#singapore_roads <- as_Spatial(singapore_roads)
 ```
 
 **Convert to Spatial Object**
+
 ```{r}
 origin_sp <- as(origin, "SpatialPoints")
 sg_sp <- as(sg, "SpatialPolygons")
 ```
 
 **Convert to ppp Object**
+
 ```{r}
 origin_ppp <- as(origin_sp, "ppp")
 ```
 
 **Check for duplicate or overlap points**
+
 ```{r eval=FALSE}
 tm_shape(sg_sf) +
   tm_polygons() +
@@ -156,30 +176,35 @@ tm_shape(sg_sf) +
 ```
 
 ![](/image/THA-02.png)
+
 ```{r}
 any(duplicated(origin_ppp))
 sum(multiplicity(origin_ppp) > 1)
 ```
 
 **Convert to owin Object**
+
 ```{r}
 sg_owin <- as(sg_sp, "owin")
 ```
 
 **Combine Grabposisi Data with Coastal Outline**
+
 ```{r}
 origin_ppp = origin_ppp[sg_owin]
 plot(origin_ppp)
 ```
 
 # Exploratory Data Analysis
+
 ## Kernel Density Estimation (KDE)
+
 ```{r}
 # Convert data to km as our unit of measurement
 origin_ppp.km <- rescale(origin_ppp, 1000, "km")
 ```
 
-**Selecting Kernel Method** 
+**Selecting Kernel Method**
 
 Baddeley et. (2016) suggested the use of the bw.ppl() algorithm because in ther experience it tends to produce the more appropriate values when the pattern consists predominantly of tight clusters. But they also insist that if the purpose of once study is to detect a single tight cluster in the midst of random noise then the bw.diggle() method seems to work best.
 
@@ -199,6 +224,7 @@ plot(density(origin_ppp.km,
 ```
 
 ![](/image/THA-03.png)
+
 ```{r eval=FALSE}
 par(mfrow=c(2,2))
 plot(density(origin_ppp.km, 
@@ -223,8 +249,7 @@ plot(density(origin_ppp.km,
      main="Disc")
 ```
 
-![](images/THA-04.jpg)
-There are no much differences among the 4 kernel methods. Sticking to gaussian for this analysis.
+![](images/THA-04.jpg) There are no much differences among the 4 kernel methods. Sticking to gaussian for this analysis.
 
 ```{r eval=FALSE}
 kde_origin.ppl <- density(origin_ppp.km, 
@@ -242,8 +267,7 @@ plot(kde_origin.ppl, main = "Fixed bandwidth")
 plot(kde_origin_adaptive, main = "Adaptive bandwidth")
 ```
 
-![](images/THA-05.png)
-**Converting KDE into grid object**
+![](images/THA-05.png) **Converting KDE into grid object**
 
 ```{r eval=FALSE}
 gridded_kde_origin_ppl <- as.SpatialGridDataFrame.im(kde_origin.ppl)
@@ -263,3 +287,325 @@ tm_shape(kde_origin_ppl_raster) +
 ```
 
 ![](images/THA-06.png)
+
+## Network Kernel Density Estimation (NKDE)
+**Examine the structure of the output SpatialDataFrame
+
+```{r eval=FALSE}
+plot(singapore_roads)
+plot(origin_df,add=T,col='#E26B51',pch = 19)
+```
+
+
+```{r}
+ch <- mpsz_sf %>%
+  filter(PLN_AREA_N == "CHANGI")
+ch <- ch%>%
+  st_union()
+ch <- st_make_valid(ch)
+length(which(st_is_valid(ch) == FALSE))
+```
+
+```{r}
+town <- mpsz_sf %>%
+  filter(CA_IND == "Y")
+town <- town%>%
+  st_union()
+town <- st_make_valid(town)
+length(which(st_is_valid(town) == FALSE))
+```
+
+```{r}
+wood <- mpsz_sf %>%
+  filter(PLN_AREA_N == "WOODLANDS")
+wood <- wood%>%
+  st_union()
+wood <- st_make_valid(wood)
+length(which(st_is_valid(wood) == FALSE))
+```
+
+```{r}
+cck_bp <- mpsz_sf %>%
+  filter(PLN_AREA_N %in% c("CHOA CHU KANG","BUKIT PANJANG"))
+
+cck_bp <- cck_bp%>%
+  st_union()
+
+cck_bp <- st_make_valid(cck_bp)
+length(which(st_is_valid(cck_bp) == FALSE))
+```
+
+```{r}
+jg <- mpsz_sf %>%
+  filter(PLN_AREA_N %in% c("JURONG WEST","JURONG EAST","CLEMENTI"))
+jg <- jg%>%
+  st_union()
+jg <- st_make_valid(jg)
+length(which(st_is_valid(jg) == FALSE))
+```
+
+
+```{r}
+ch <- st_transform(ch, crs = 3414)
+town <- st_transform(town, crs = 3414)
+wood <- st_transform(wood, crs = 3414)
+cck_bp <- st_transform(cck_bp, crs = 3414)
+jg <- st_transform(jg, crs = 3414)
+```
+
+```{r warning=FALSE}
+ch_roads <- st_intersection(singapore_roads, ch)
+town_roads <- st_intersection(singapore_roads, town)
+wood_roads <- st_intersection(singapore_roads, wood)
+cck_bp_roads <- st_intersection(singapore_roads, cck_bp)
+jg_roads <- st_intersection(singapore_roads, jg)
+```
+
+```{r eval=FALSE}
+par(mfrow=c(2,3))
+plot(ch, main = "Changi Area")
+plot(town, main = "Town Area")
+plot(wood, main = "Woodlands Area")
+plot(cck_bp, main = "CCK  Area")
+plot(jg, main = "Jurong Area")
+```
+
+![](images/THA-07.png)
+
+```{r eval=FALSE}
+plot(ch_roads)
+plot(town_roads)
+plot(wood_roads)
+plot(cck_bp_roads)
+plot(jg_roads)
+```
+
+```{r eval=FALSE}
+tmap_mode('plot')
+
+tmap_arrange(tm_shape(ch_roads) +
+               tm_lines(col = "red") +
+               tm_layout(title = "Tampines", title.size = 0.8),
+             tm_shape(town_roads) +
+               tm_lines(col = "blue") +
+               tm_layout(title = "Town", title.size = 0.8), 
+             tm_shape(wood_roads) +
+               tm_lines(col = "green") +
+               tm_layout(title = "Woodlands", title.size = 0.8),
+             tm_shape(cck_bp_roads) +
+               tm_lines(col = "orange") +
+               tm_layout(title = "Choa Chu Kang", title.size = 0.8),
+             tm_shape(jg_roads) +
+               tm_lines(col = "purple") +
+               tm_layout(title = "Jurong", title.size = 0.8), 
+             asp=2, ncol=3)
+```
+
+![](images/THA-08.png)
+
+```{r warning=FALSE}
+ch_roads <- st_cast(ch_roads, "LINESTRING")
+town_roads <- st_cast(town_roads, "LINESTRING")
+wood_roads <- st_cast(wood_roads, "LINESTRING")
+cck_bp_roads <- st_cast(cck_bp_roads, "LINESTRING")
+jg_roads <- st_cast(jg_roads, "LINESTRING")
+```
+
+
+```{r eval=FALSE}
+lixels_ch <- lixelize_lines(ch_roads, 
+                         700, 
+                         mindist = 350)
+lixels_town <- lixelize_lines(town_roads, 
+                         700, 
+                         mindist = 350)
+lixels_wood <- lixelize_lines(wood_roads, 
+                         700, 
+                         mindist = 350)
+lixels_cck_bp <- lixelize_lines(cck_bp_roads, 
+                         700, 
+                         mindist = 350)
+lixels_jg <- lixelize_lines(jg_roads, 
+                         700, 
+                         mindist = 350)
+```
+
+```{r eval=FALSE}
+samples_ch <- lines_center(lixels_ch)
+samples_town <- lines_center(lixels_town)
+samples_wood <- lines_center(lixels_wood)
+samples_cck_bp <- lines_center(lixels_cck_bp)
+samples_jg <- lines_center(lixels_jg)
+```
+
+```{r warning=FALSE}
+origin_ch = st_intersection(origin_df, ch)
+origin_town = st_intersection(origin_df, town)
+origin_wood = st_intersection(origin_df, wood)
+origin_cck_bp = st_intersection(origin_df, cck_bp)
+origin_jg = st_intersection(origin_df, jg)
+```
+
+```{r}
+tmap_mode('view')
+tm_basemap("OpenStreetMap") +
+tm_shape(wood_roads) +
+  tm_lines(col = "green") +
+  tm_shape(origin_wood) + 
+  tm_dots()
+tmap_mode('plot')
+```
+
+```{r eval=FALSE}
+# This code is repeated for the remaining 5 area except the variables for [lines, events, w & samples]
+densities_ch <- nkde(ch_roads, 
+                  events = origin_ch,
+                  w = rep(1,nrow(origin_ch)),
+                  samples = samples_ch,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+
+samples_ch$density <- densities_ch*1000
+lixels_ch$density <- densities_ch*1000
+```
+
+
+```{r eval=FALSE, echo=FALSE}
+write_rds(lixels_ch, "/dljyuan/IS415-GAA/data/rds/lixels_ch.rds")
+```
+```{r echo=FALSE}
+lixels_ch = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_ch.rds")
+lixels_town = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_town.rds")
+lixels_wood = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_wood.rds")
+lixels_cck_bp = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_cck_bp.rds")
+lixels_jg = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_jg.rds")
+```
+
+<style>
+.tabs {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.tab {
+  cursor: pointer;
+  padding: 10px;
+  background-color: #f2f2f2;
+  border: 1px solid #ccc;
+  border-radius: 5px 5px 0 0;
+}
+
+.tab:hover {
+  background-color: #ddd;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+</style>
+
+<!-- Define the tabs -->
+<ul class="tabs">
+  <li class="tab active" onclick="showTab('tab1')">Changi</li>
+  <li class="tab" onclick="showTab('tab2')">Town</li>
+  <li class="tab" onclick="showTab('tab3')">Wood</li>
+  <li class="tab" onclick="showTab('tab4')">Choa Chu Kang</li>
+  <li class="tab" onclick="showTab('tab5')">Jurong</li>
+</ul>
+
+<!-- Define the tab content -->
+<div id="tab1" class="tab-content active">
+```{r eval=FALSE}
+tmap_mode('plot')
+tm_shape(lixels_ch)+
+  tm_lines(col="density")+
+tm_shape(origin_ch)+
+  tm_dots()
+```
+
+![](images/THA-09.png)
+
+</div>
+<div id="tab2" class="tab-content">
+
+```{r eval=FALSE}
+tmap_mode('plot')
+tm_shape(lixels_town)+
+  tm_lines(col="density")+
+tm_shape(origin_town)+
+  tm_dots()
+```
+
+![](images/THA-10.png)
+
+</div>
+
+<div id="tab3" class="tab-content">
+
+```{r eval=FALSE}
+tmap_mode('plot')
+tm_shape(lixels_wood)+
+  tm_lines(col="density")+
+tm_shape(origin_wood)+
+  tm_dots()
+```
+
+![](images/THA-11.png)
+
+</div>
+<div id="tab4" class="tab-content">
+
+```{r eval=FALSE}
+tmap_mode('plot')
+tm_shape(lixels_cck_bp)+
+  tm_lines(col="density")+
+tm_shape(origin_cck_bp)+
+  tm_dots()
+```
+
+![](images/THA-12.png)
+
+</div>
+
+<div id="tab5" class="tab-content">
+
+```{r eval=FALSE}
+tmap_mode('plot')
+tm_shape(lixels_jg)+
+  tm_lines(col="density")+
+tm_shape(origin_jg)+
+  tm_dots()
+```
+
+![](images/THA-13.png)
+
+</div>
+
+<script>
+function showTab(tabId) {
+  var selectedTab = document.getElementById(tabId);
+  selectedTab.classList.toggle('active');
+
+  var tabContents = document.querySelectorAll('.tab-content');
+  tabContents.forEach(function(content) {
+    if (content.id !== tabId) {
+      content.classList.remove('active');
+    }
+  });
+}
+</script>

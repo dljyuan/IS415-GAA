@@ -25,8 +25,11 @@ network <- st_read(dsn="../data/geospatial",
 childcare <- st_read(dsn="../data/geospatial",
                      layer="Punggol_CC")
 ```
+
 # Data Preparation
-We can examine the structure of the output SpatialDataFrame in RStudio. Alternative, code chunk below can be used to print the content of network ***SpatialLineDataFrame*** and childcare ***SpatialPointsDataFrame** by using the code chunk below.
+
+We can examine the structure of the output SpatialDataFrame in RStudio. Alternative, code chunk below can be used to print the content of network ***SpatialLineDataFrame*** and childcare \***SpatialPointsDataFrame** by using the code chunk below.
+
 ```{r eval=FALSE}
 str(network)
 str(childcare)
@@ -35,14 +38,16 @@ str(childcare)
 **When I exploring spNetwork’s functions, it came to my attention that spNetwork is expecting the geospatial data contains complete CRS information.**
 
 In the code chunk below, spTransform() of sp package is used to assign EPSG code to the SpatialDataFrames. The epsg:3414 is the code for svy21.
+
 ```{r eval=FALSE}
-childcare <-spTransform(childcare,
+childcare <-spTransform(as_Spatial(childcare),
                         CRS("+init=epsg:3414"))
-network <- spTransform(network,
+network <- spTransform(as_Spatial(network),
                        CRS("+init=epsg:3414"))
 ```
 
 # Visualising Geospatial Data
+
 ```{r}
 plot(network)
 plot(childcare,add=T,col='red',pch = 19)
@@ -55,8 +60,11 @@ tm_shape(childcare) +
   tm_shape(network) +
   tm_lines()
 ```
+
 # Network Constrained KDE (NetKDE) Analysi
+
 ## Line Segmenting (Preparing the lixels objects)
+
 ```{r}
 lixels <- lixelize_lines(network,
                          750,
@@ -64,11 +72,13 @@ lixels <- lixelize_lines(network,
 ```
 
 ## Generating Line Centre Point
+
 ```{r}
 samples <- lines_center(lixels)
 ```
 
 ## Performing NetKDE
+
 ```{r}
 densities <- nkde(network, 
                   events = childcare,
@@ -89,23 +99,27 @@ densities <- nkde(network,
 
 ::: callout-note
 # Learning Points
-- kernel_name argument indicates that quartic kernel is used. Are possible kernel methods supported by spNetwork are: triangle, gaussian, scaled gaussian, tricube, cosine ,triweight, epanechnikov or uniform.
-- method argument indicates that simple method is used to calculate the NKDE. Currently, spNetwork support three popular methods, they are:
 
-  - **method=“simple”**. This first method was presented by Xie et al. (2008) and proposes an intuitive solution. The distances between events and sampling points are replaced by network distances, and the formula of the kernel is adapted to calculate the density over a linear unit instead of an areal unit.
-  - **method=“discontinuous”**. The method is proposed by Okabe et al (2008), which equally “divides” the mass density of an event at intersections of lixels.
-  - **method=“continuous”**. If the discontinuous method is unbiased, it leads to a discontinuous kernel function which is a bit counter-intuitive. Okabe et al (2008) proposed another version of the kernel, that divide the mass of the density at intersection but adjusts the density before the intersection to make the function continuous.
+-   kernel_name argument indicates that quartic kernel is used. Are possible kernel methods supported by spNetwork are: triangle, gaussian, scaled gaussian, tricube, cosine ,triweight, epanechnikov or uniform.
 
+-   method argument indicates that simple method is used to calculate the NKDE. Currently, spNetwork support three popular methods, they are:
+
+    -   **method=“simple”**. This first method was presented by Xie et al. (2008) and proposes an intuitive solution. The distances between events and sampling points are replaced by network distances, and the formula of the kernel is adapted to calculate the density over a linear unit instead of an areal unit.
+    -   **method=“discontinuous”**. The method is proposed by Okabe et al (2008), which equally “divides” the mass density of an event at intersections of lixels.
+    -   **method=“continuous”**. If the discontinuous method is unbiased, it leads to a discontinuous kernel function which is a bit counter-intuitive. Okabe et al (2008) proposed another version of the kernel, that divide the mass of the density at intersection but adjusts the density before the intersection to make the function continuous.
 :::
 
 ## Visualising NetKDE
+
 **insert the computed density values into samples and lixels objects as density field**
+
 ```{r}
 samples$density <- densities
 lixels$density <- densities
 ```
 
 Since **svy21 projection system is in meter**, the computed density values are very small i.e. 0.0000005. The code chunk below is used to resale the density values from number of events per meter to number of events per kilometer.
+
 ```{r}
 # rescaling to help the mapping
 samples$density <- samples$density*1000
@@ -113,6 +127,7 @@ lixels$density <- lixels$density*1000
 ```
 
 **Interactive and high cartographic quality NetKDE map visualisation**
+
 ```{r}
 tmap_mode('view')
 tm_shape(lixels)+
@@ -123,6 +138,7 @@ tmap_mode('plot')
 ```
 
 # Network Constrained G- and K-Function Analysis
+
 In this section, we are going to perform complete spatial randomness (CSR) test by using kfunctions() of **spNetwork** package. The null hypothesis is defined as:
 
 **Ho: The observed spatial point events (i.e distribution of childcare centres) are uniformly distributed over a street network in Punggol Planning Area.**
@@ -130,6 +146,7 @@ In this section, we are going to perform complete spatial randomness (CSR) test 
 The CSR test is based on the assumption of the binomial point process which implies the hypothesis that the childcare centres are randomly and independently distributed over the street network.
 
 If this hypothesis is rejected, we may infer that the distribution of childcare centres are spatially interacting and dependent on each other; as a result, they may form nonrandom patterns.
+
 ```{r}
 kfun_childcare <- kfunctions(network, 
                              childcare,
@@ -145,25 +162,24 @@ kfun_childcare <- kfunctions(network,
 
 ::: callout-note
 # Learning Points
+
 There are ten arguments used in the code chunk above they are:
 
-- **lines**: A SpatialLinesDataFrame with the sampling points. The geometries must be a SpatialLinesDataFrame (may crash if some geometries are invalid).
-- **points**: A SpatialPointsDataFrame representing the points on the network. These points will be snapped on the network.
-- **start**: A double, the start value for evaluating the k and g functions.
-- **end**: A double, the last value for evaluating the k and g functions.
-- **step**: A double, the jump between two evaluations of the k and g function.
-- **width**: The width of each donut for the g-function.
-- **nsim**: An integer indicating the number of Monte Carlo simulations required. In the above example, 50 simulation was performed. Note: most of the time, more simulations are required for inference
-- **resolution**: When simulating random points on the network, selecting a resolution will reduce greatly the calculation time. When resolution is null the random points can occur everywhere on the graph. If a value is specified, the edges are split according to this value and the random points are selected vertices on the new network.
-- **conf_int**: A double indicating the width confidence interval (default = 0.05).
-
+-   **lines**: A SpatialLinesDataFrame with the sampling points. The geometries must be a SpatialLinesDataFrame (may crash if some geometries are invalid).
+-   **points**: A SpatialPointsDataFrame representing the points on the network. These points will be snapped on the network.
+-   **start**: A double, the start value for evaluating the k and g functions.
+-   **end**: A double, the last value for evaluating the k and g functions.
+-   **step**: A double, the jump between two evaluations of the k and g function.
+-   **width**: The width of each donut for the g-function.
+-   **nsim**: An integer indicating the number of Monte Carlo simulations required. In the above example, 50 simulation was performed. Note: most of the time, more simulations are required for inference
+-   **resolution**: When simulating random points on the network, selecting a resolution will reduce greatly the calculation time. When resolution is null the random points can occur everywhere on the graph. If a value is specified, the edges are split according to this value and the random points are selected vertices on the new network.
+-   **conf_int**: A double indicating the width confidence interval (default = 0.05).
 :::
 
 The output of kfunctions() is a list with the following values:
 
-  plotkA, a ggplot2 object representing the values of the k-function
-  plotgA, a ggplot2 object representing the values of the g-function
-  valuesA, a DataFrame with the values used to build the plots
+plotkA, a ggplot2 object representing the values of the k-function plotgA, a ggplot2 object representing the values of the g-function valuesA, a DataFrame with the values used to build the plots
+
 ```{r}
 kfun_childcare$plotk
 ```
