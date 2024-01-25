@@ -50,9 +50,7 @@ website:
 
 format:
   html:
-    theme: 
-      light: [superhero, light.scss]
-      dark: [superhero, dark.scss]
+    theme: united
     css: styles.css
     toc: true
 

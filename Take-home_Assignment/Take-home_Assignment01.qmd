@@ -289,13 +289,13 @@ tm_shape(kde_origin_ppl_raster) +
 ![](images/THA-06.png)
 
 ## Network Kernel Density Estimation (NKDE)
-**Examine the structure of the output SpatialDataFrame
+
+\*\*Examine the structure of the output SpatialDataFrame
 
 ```{r eval=FALSE}
 plot(singapore_roads)
 plot(origin_df,add=T,col='#E26B51',pch = 19)
 ```
-
 
 ```{r}
 ch <- mpsz_sf %>%
@@ -344,7 +344,6 @@ jg <- st_make_valid(jg)
 length(which(st_is_valid(jg) == FALSE))
 ```
 
-
 ```{r}
 ch <- st_transform(ch, crs = 3414)
 town <- st_transform(town, crs = 3414)
@@ -366,26 +365,153 @@ par(mfrow=c(2,3))
 plot(ch, main = "Changi Area")
 plot(town, main = "Town Area")
 plot(wood, main = "Woodlands Area")
-plot(cck_bp, main = "CCK  Area")
+plot(cck_bp, main = "Choa Chu Kang Area")
 plot(jg, main = "Jurong Area")
 ```
 
 ![](images/THA-07.png)
 
+```{=html}
+<style>
+.tabs {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+.tab {
+  cursor: pointer;
+  padding: 10px;
+  background-color: #f2f2f2;
+  border: 1px solid #ccc;
+  border-radius: 5px 5px 0 0;
+}
+
+.tab:hover {
+  background-color: #ddd;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.tab-content2 {
+  display: none;
+}
+
+.tab-content2.active {
+  display: block;
+}
+</style>
+```
+<!-- Define the tabs -->
+
+<ul class="tabs">
+
+<li class="tab active" onclick="showTab(&#39;tab1&#39;)">
+
+Changi
+
+</li>
+
+<li class="tab" onclick="showTab(&#39;tab2&#39;)">
+
+Town
+
+</li>
+
+<li class="tab" onclick="showTab(&#39;tab3&#39;)">
+
+Woodlands
+
+</li>
+
+<li class="tab" onclick="showTab(&#39;tab4&#39;)">
+
+Choa Chu Kang
+
+</li>
+
+<li class="tab" onclick="showTab(&#39;tab5&#39;)">
+
+Jurong
+
+</li>
+
+</ul>
+
+<!-- Define the tab content -->
+
+::: {#tab1 .tab-content .active}
+**Changi Area**
 ```{r eval=FALSE}
 plot(ch_roads)
+```
+
+![](images/Changi_Rd.png)
+:::
+
+::: {#tab2 .tab-content}
+**Town Area**
+```{r eval=FALSE}
 plot(town_roads)
+```
+
+![](images/Town_Rd.png)
+:::
+
+::: {#tab3 .tab-content}
+**Woodlands Area**
+```{r eval=FALSE}
 plot(wood_roads)
+```
+
+![](images/Woodlands_Rd.png)
+:::
+
+::: {#tab4 .tab-content}
+**Choa Chu Kang Area**
+```{r eval=FALSE}
 plot(cck_bp_roads)
+```
+
+![](images/CCK_Rd.png)
+:::
+
+::: {#tab5 .tab-content}
+**Jurong Area**
+
+```{r eval=FALSE}
 plot(jg_roads)
 ```
 
-```{r eval=FALSE}
-tmap_mode('plot')
+![](images/Jurong_Rd.png)
+:::
 
+```{=html}
+<script>
+function showTab(tabId) {
+  var selectedTab = document.getElementById(tabId);
+  selectedTab.classList.toggle('active');
+
+  var tabContents = document.querySelectorAll('.tab-content');
+  tabContents.forEach(function(content) {
+    if (content.id !== tabId) {
+      content.classList.remove('active');
+    }
+  });
+}
+</script>
+```
+```{r eval=FALSE}
 tmap_arrange(tm_shape(ch_roads) +
                tm_lines(col = "red") +
-               tm_layout(title = "Tampines", title.size = 0.8),
+               tm_layout(title = "Changi", title.size = 0.8),
              tm_shape(town_roads) +
                tm_lines(col = "blue") +
                tm_layout(title = "Town", title.size = 0.8), 
@@ -410,7 +536,6 @@ wood_roads <- st_cast(wood_roads, "LINESTRING")
 cck_bp_roads <- st_cast(cck_bp_roads, "LINESTRING")
 jg_roads <- st_cast(jg_roads, "LINESTRING")
 ```
-
 
 ```{r eval=FALSE}
 lixels_ch <- lixelize_lines(ch_roads, 
@@ -447,7 +572,7 @@ origin_jg = st_intersection(origin_df, jg)
 ```
 
 ```{r}
-tmap_mode('view')
+tmap_mode('plot')
 tm_basemap("OpenStreetMap") +
 tm_shape(wood_roads) +
   tm_lines(col = "green") +
@@ -458,7 +583,7 @@ tmap_mode('plot')
 
 ```{r eval=FALSE}
 # This code is repeated for the remaining 5 area except the variables for [lines, events, w & samples]
-densities_ch <- nkde(ch_roads, 
+densities <- nkde(ch_roads, 
                   events = origin_ch,
                   w = rep(1,nrow(origin_ch)),
                   samples = samples_ch,
@@ -474,14 +599,14 @@ densities_ch <- nkde(ch_roads,
                   sparse = TRUE,
                   verbose = FALSE)
 
-samples_ch$density <- densities_ch*1000
-lixels_ch$density <- densities_ch*1000
+samples_ch$density <- densities*1000
+lixels_ch$density <- densities*1000
 ```
-
 
 ```{r eval=FALSE, echo=FALSE}
 write_rds(lixels_ch, "/dljyuan/IS415-GAA/data/rds/lixels_ch.rds")
 ```
+
 ```{r echo=FALSE}
 lixels_ch = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_ch.rds")
 lixels_town = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_town.rds")
@@ -490,46 +615,45 @@ lixels_cck_bp = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_cck_bp.rds")
 lixels_jg = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_jg.rds")
 ```
 
-<style>
-.tabs {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-}
-
-.tab {
-  cursor: pointer;
-  padding: 10px;
-  background-color: #f2f2f2;
-  border: 1px solid #ccc;
-  border-radius: 5px 5px 0 0;
-}
-
-.tab:hover {
-  background-color: #ddd;
-}
-
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
-</style>
-
 <!-- Define the tabs -->
+
 <ul class="tabs">
-  <li class="tab active" onclick="showTab('tab1')">Changi</li>
-  <li class="tab" onclick="showTab('tab2')">Town</li>
-  <li class="tab" onclick="showTab('tab3')">Wood</li>
-  <li class="tab" onclick="showTab('tab4')">Choa Chu Kang</li>
-  <li class="tab" onclick="showTab('tab5')">Jurong</li>
+
+<li class="tab active" onclick="showTab2(&#39;ta2b1&#39;)">
+
+Changi
+
+</li>
+
+<li class="tab" onclick="showTab2(&#39;ta2b2&#39;)">
+
+Town
+
+</li>
+
+<li class="tab" onclick="showTab2(&#39;ta2b3&#39;)">
+
+Woodlands
+
+</li>
+
+<li class="tab" onclick="showTab2(&#39;ta2b4&#39;)">
+
+Choa Chu Kang
+
+</li>
+
+<li class="tab" onclick="showTab2(&#39;ta2b5&#39;)">
+
+Jurong
+
+</li>
+
 </ul>
 
 <!-- Define the tab content -->
-<div id="tab1" class="tab-content active">
+
+::: {#ta2b1 .tab-content2 .active}
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_ch)+
@@ -539,10 +663,9 @@ tm_shape(origin_ch)+
 ```
 
 ![](images/THA-09.png)
+:::
 
-</div>
-<div id="tab2" class="tab-content">
-
+::: {#ta2b2 .tab-content2}
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_town)+
@@ -552,11 +675,9 @@ tm_shape(origin_town)+
 ```
 
 ![](images/THA-10.png)
+:::
 
-</div>
-
-<div id="tab3" class="tab-content">
-
+::: {#ta2b3 .tab-content2}
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_wood)+
@@ -566,10 +687,9 @@ tm_shape(origin_wood)+
 ```
 
 ![](images/THA-11.png)
+:::
 
-</div>
-<div id="tab4" class="tab-content">
-
+::: {#ta2b4 .tab-content2}
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_cck_bp)+
@@ -579,11 +699,9 @@ tm_shape(origin_cck_bp)+
 ```
 
 ![](images/THA-12.png)
+:::
 
-</div>
-
-<div id="tab5" class="tab-content">
-
+::: {#ta2b5 .tab-content2}
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_jg)+
@@ -593,15 +711,15 @@ tm_shape(origin_jg)+
 ```
 
 ![](images/THA-13.png)
+:::
 
-</div>
-
+```{=html}
 <script>
-function showTab(tabId) {
+function showTab2(tabId) {
   var selectedTab = document.getElementById(tabId);
   selectedTab.classList.toggle('active');
 
-  var tabContents = document.querySelectorAll('.tab-content');
+  var tabContents = document.querySelectorAll('.tab-content2');
   tabContents.forEach(function(content) {
     if (content.id !== tabId) {
       content.classList.remove('active');
@@ -609,3 +727,4 @@ function showTab(tabId) {
   });
 }
 </script>
+```
