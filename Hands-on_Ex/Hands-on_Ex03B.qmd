@@ -1,5 +1,5 @@
 ---
-title: "Network Constrained Spatial Point Patterns Analysis"
+title: "Hands-on Exercise 03B: Network Constrained Spatial Point Patterns Analysis"
 execute: 
   eval: true
   echo: true

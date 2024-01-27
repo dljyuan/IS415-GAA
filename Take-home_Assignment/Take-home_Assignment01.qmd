@@ -1,5 +1,5 @@
 ---
-title: "Discovering geographical distribution of Grab hailing services in Singapore"
+title: "Take-home Assignment 01: Discovering geographical distribution of Grab hailing services in Singapore"
 author: "Jin Yuan"
 date: 01/22/2024
 date-modified: "last-modified"
@@ -225,6 +225,8 @@ plot(density(origin_ppp.km,
 
 ![](/image/THA-03.png)
 
+The map **bw.ppl** might show sharper contrasts and potentially reveal more nuanced clusters or patterns in the point distribution compared to the **bw.diggle** map.
+
 ```{r eval=FALSE}
 par(mfrow=c(2,2))
 plot(density(origin_ppp.km, 
@@ -249,7 +251,8 @@ plot(density(origin_ppp.km,
      main="Disc")
 ```
 
-![](images/THA-04.jpg) There are no much differences among the 4 kernel methods. Sticking to gaussian for this analysis.
+![](images/THA-04.jpg) 
+While the four KDE maps exhibit overall similarities, closer inspection reveals subtle differences in density patterns. For this analysis we will utilize the **Gaussian kernel** for this analysis.
 
 ```{r eval=FALSE}
 kde_origin.ppl <- density(origin_ppp.km, 
@@ -267,7 +270,10 @@ plot(kde_origin.ppl, main = "Fixed bandwidth")
 plot(kde_origin_adaptive, main = "Adaptive bandwidth")
 ```
 
-![](images/THA-05.png) **Converting KDE into grid object**
+![](images/THA-05.png) 
+Based on visual analysis of the KDE maps, fixed bandwidth will produce a more accurate and interpretable representation of the underlying data distribution as compared to adaptive bandwidth.
+
+**Converting KDE into grid object**
 
 ```{r eval=FALSE}
 gridded_kde_origin_ppl <- as.SpatialGridDataFrame.im(kde_origin.ppl)
@@ -288,15 +294,14 @@ tm_shape(kde_origin_ppl_raster) +
 
 ![](images/THA-06.png)
 
+The map reveals several distinct clusters of high-density points, particularly concentrated in the southeastern and southern quadrants. These clusters could be further analyzed by dividing them into five distinct regions.
+
 ## Network Kernel Density Estimation (NKDE)
+The five high-density regions identified in the standard KDE analysis will be the focus of network kernel density estimation. This will leverage the network's inherent connections and potentially uncover deeper insights and relationships within these areas.
 
-\*\*Examine the structure of the output SpatialDataFrame
-
-```{r eval=FALSE}
-plot(singapore_roads)
-plot(origin_df,add=T,col='#E26B51',pch = 19)
-```
-
+![](images/THA-14.png)
+**Retrieving the five study areas**
+Changi
 ```{r}
 ch <- mpsz_sf %>%
   filter(PLN_AREA_N == "CHANGI")
@@ -305,7 +310,7 @@ ch <- ch%>%
 ch <- st_make_valid(ch)
 length(which(st_is_valid(ch) == FALSE))
 ```
-
+Town
 ```{r}
 town <- mpsz_sf %>%
   filter(CA_IND == "Y")
@@ -314,7 +319,7 @@ town <- town%>%
 town <- st_make_valid(town)
 length(which(st_is_valid(town) == FALSE))
 ```
-
+Woodlands
 ```{r}
 wood <- mpsz_sf %>%
   filter(PLN_AREA_N == "WOODLANDS")
@@ -323,7 +328,7 @@ wood <- wood%>%
 wood <- st_make_valid(wood)
 length(which(st_is_valid(wood) == FALSE))
 ```
-
+Choa Chu Kang
 ```{r}
 cck_bp <- mpsz_sf %>%
   filter(PLN_AREA_N %in% c("CHOA CHU KANG","BUKIT PANJANG"))
@@ -334,7 +339,7 @@ cck_bp <- cck_bp%>%
 cck_bp <- st_make_valid(cck_bp)
 length(which(st_is_valid(cck_bp) == FALSE))
 ```
-
+Jurong
 ```{r}
 jg <- mpsz_sf %>%
   filter(PLN_AREA_N %in% c("JURONG WEST","JURONG EAST","CLEMENTI"))
@@ -344,6 +349,7 @@ jg <- st_make_valid(jg)
 length(which(st_is_valid(jg) == FALSE))
 ```
 
+**Converting to SVY21 3414**
 ```{r}
 ch <- st_transform(ch, crs = 3414)
 town <- st_transform(town, crs = 3414)
@@ -351,7 +357,7 @@ wood <- st_transform(wood, crs = 3414)
 cck_bp <- st_transform(cck_bp, crs = 3414)
 jg <- st_transform(jg, crs = 3414)
 ```
-
+**Extracting the road layers for each individual area**
 ```{r warning=FALSE}
 ch_roads <- st_intersection(singapore_roads, ch)
 town_roads <- st_intersection(singapore_roads, town)
@@ -360,6 +366,7 @@ cck_bp_roads <- st_intersection(singapore_roads, cck_bp)
 jg_roads <- st_intersection(singapore_roads, jg)
 ```
 
+**Visualising the extract spatial data**
 ```{r eval=FALSE}
 par(mfrow=c(2,3))
 plot(ch, main = "Changi Area")
@@ -449,6 +456,7 @@ Jurong
 
 ::: {#tab1 .tab-content .active}
 **Changi Area**
+
 ```{r eval=FALSE}
 plot(ch_roads)
 ```
@@ -458,6 +466,7 @@ plot(ch_roads)
 
 ::: {#tab2 .tab-content}
 **Town Area**
+
 ```{r eval=FALSE}
 plot(town_roads)
 ```
@@ -467,6 +476,7 @@ plot(town_roads)
 
 ::: {#tab3 .tab-content}
 **Woodlands Area**
+
 ```{r eval=FALSE}
 plot(wood_roads)
 ```
@@ -476,6 +486,7 @@ plot(wood_roads)
 
 ::: {#tab4 .tab-content}
 **Choa Chu Kang Area**
+
 ```{r eval=FALSE}
 plot(cck_bp_roads)
 ```
@@ -529,6 +540,7 @@ tmap_arrange(tm_shape(ch_roads) +
 
 ![](images/THA-08.png)
 
+**Converting the geometry format to linestring.**
 ```{r warning=FALSE}
 ch_roads <- st_cast(ch_roads, "LINESTRING")
 town_roads <- st_cast(town_roads, "LINESTRING")
@@ -537,6 +549,7 @@ cck_bp_roads <- st_cast(cck_bp_roads, "LINESTRING")
 jg_roads <- st_cast(jg_roads, "LINESTRING")
 ```
 
+**Preparing lixels object & generating line centre points**
 ```{r eval=FALSE}
 lixels_ch <- lixelize_lines(ch_roads, 
                          700, 
@@ -555,6 +568,7 @@ lixels_jg <- lixelize_lines(jg_roads,
                          mindist = 350)
 ```
 
+**Retrieving the pickup points for each study area**
 ```{r eval=FALSE}
 samples_ch <- lines_center(lixels_ch)
 samples_town <- lines_center(lixels_town)
@@ -571,16 +585,7 @@ origin_cck_bp = st_intersection(origin_df, cck_bp)
 origin_jg = st_intersection(origin_df, jg)
 ```
 
-```{r}
-tmap_mode('plot')
-tm_basemap("OpenStreetMap") +
-tm_shape(wood_roads) +
-  tm_lines(col = "green") +
-  tm_shape(origin_wood) + 
-  tm_dots()
-tmap_mode('plot')
-```
-
+**Performing NetKDE**
 ```{r eval=FALSE}
 # This code is repeated for the remaining 5 area except the variables for [lines, events, w & samples]
 densities <- nkde(ch_roads, 
@@ -711,6 +716,10 @@ tm_shape(origin_jg)+
 ```
 
 ![](images/THA-13.png)
+:::
+
+::: callout-note
+Considering the large number/size of data points, **Woodlands** NetKDE visualization will be the sole area depicted on the **OpenStreetMap** of Singapore.
 :::
 
 ```{=html}
