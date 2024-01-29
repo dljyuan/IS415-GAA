@@ -5,6 +5,7 @@ date: 01/22/2024
 date-modified: "last-modified"
 date-format: "DD/MM/YYYY"
 editor: visual
+format: html
 categories:
   - Take-home Assignment
 title-block-categories: false
@@ -36,29 +37,80 @@ For this exercise, we will be using the following packages:
 
 **raster** for reading, writing, manipulating, and analyzing gridded spatial data in a raster format.
 
+**arrow** for reading parquet files and to load the dataset
+
 ```{r}
 pacman::p_load(tmap, sf, tidyverse, spatstat, spNetwork, classInt, viridis,
-               maptools, raster)
+               maptools, raster, arrow)
 ```
 
 ## Importing Data
 
 **GrabPosisi Data (Pick Up Location)**
 
-```{r}
+```{r eval=FALSE}
 #GrabPosisi Data
-origin_df <- read_rds("/dljyuan/IS415-GAA/data/rds/origin_df.rds")
-#destination_df <- read_rds("/dljyuan/IS415-GAA/data/rds/destination_df.rds")
+df <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00000.parquet")
+df2 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00001.parquet")
+df3 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00002.parquet")
+df4 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00003.parquet")
+df5 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00004.parquet")
+df6 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00005.parquet")
+df7 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00006.parquet")
+df8 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00007.parquet")
+df9 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00008.parquet")
+df10 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00009.parquet")
 ```
 
+**Convert time variable to datetime format**
+```{r eval=FALSE}
+df$pingtimestamp <- as_datetime(df$pingtimestamp)
+df2$pingtimestamp <- as_datetime(df2$pingtimestamp)
+df3$pingtimestamp <- as_datetime(df3$pingtimestamp)
+df4$pingtimestamp <- as_datetime(df4$pingtimestamp)
+df5$pingtimestamp <- as_datetime(df5$pingtimestamp)
+df6$pingtimestamp <- as_datetime(df6$pingtimestamp)
+df7$pingtimestamp <- as_datetime(df7$pingtimestamp)
+df8$pingtimestamp <- as_datetime(df8$pingtimestamp)
+df9$pingtimestamp <- as_datetime(df9$pingtimestamp)
+df10$pingtimestamp <- as_datetime(df10$pingtimestamp)
+```
+
+**Extracting origin location (Pickup Points)**
+```{r eval=FALSE}
+# Code repeated for all the other df
+origin_df <- df %>%
+  group_by(trj_id) %>%
+  arrange(pingtimestamp) %>%
+  filter(row_number()==1) %>%
+  mutate(weekday = wday(pingtimestamp,
+                        label=TRUE,
+                        abbr=TRUE),
+         start_hr = factor(hour(pingtimestamp)),
+         day = factor(mday(pingtimestamp)))
+```
+**Combine all df together**
+```{r eval=FALSE}
+combined_origin_df <- rbind(origin_df, origin_df2,origin_df3,origin_df4,origin_df5,origin_df6,origin_df7,origin_df8,origin_df9,origin_df10)
+```
+
+```{r eval=FALSE, echo=FALSE}
+write_rds(combined_origin_df, "/dljyuan/IS415-GAA/data/rds/combined_origin_df.rds")
+```
+
+```{r echo=FALSE}
+origin_df <- read_rds("/dljyuan/IS415-GAA/data/rds/origin_df.rds")
+```
+
+::: callout-note
+For in class assignment, we are not going to combine the 10 different parquet files but only used one of them for entire analysis
+:::
 **Boundary Data (Coastal Outline)**
 
 ```{r}
 mpsz_sf <- st_read(dsn = "../data/geospatial/",
-                   layer="MP14_SUBZONE_WEB_PL")
-sg_sf <- mpsz_sf%>%
-  st_union()
-st_geometry(sg_sf)
+                   layer="MPSZ-2019")
+sg_sf <- mpsz_sf %>%  st_combine()
 sg_sf <- st_make_valid(sg_sf)
 length(which(st_is_valid(sg_sf) == FALSE))
 ```
@@ -73,9 +125,17 @@ road <- st_read(dsn="../data/geospatial",
 Convert CRS of Road Data to be the same as the Coastal Outline (SVY21)
 
 ```{r eval=FALSE}
-road <- st_transform(road, crs = st_crs(sg_sf))
+road <- st_transform(road, crs = 3414)
+sg_sf <- st_transform(sg_sf, crs = 3414)
 st_geometry(sg_sf)
 st_geometry(road)
+```
+
+```{r}
+sg_sf <- st_transform(sg_sf, crs = 3414)
+st_geometry(sg_sf)
+mpsz_sf <- st_transform(mpsz_sf, crs = 3414)
+st_geometry(mpsz_sf)
 ```
 
 Filter out unnecessary variables
@@ -91,18 +151,15 @@ Extracting road data from Singapore only
 singapore_roads <- st_intersection(road, sg_sf)
 ```
 
-::: callout-note
-### Write Data for Future Extraction
-
 ```{r}
 #| eval: false
+#| echo: false
 write_rds(singapore_roads, "/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
 ```
-:::
 
 **Import SG Road Layers**
 
-```{r}
+```{r echo=FALSE}
 singapore_roads <- read_rds("/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
 ```
 
@@ -111,18 +168,16 @@ singapore_roads <- read_rds("/dljyuan/IS415-GAA/data/rds/singapore_roads.rds")
 **Convert Data CRS to 3414 SVY21**
 
 ```{r}
-sg_sf <- st_set_crs(sg_sf, 3414)
-singapore_roads <- st_set_crs(singapore_roads, 3414)
-st_crs(sg_sf)
-st_crs(singapore_roads)
+singapore_roads <- st_transform(singapore_roads, crs = 3414)
 ```
 
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(singapore_roads) +
   tm_lines()
-tmap_mode('plot')
 ```
+
+![](/image/THA-15.png)
 
 **Convert Latitude & Longtitude to Cartisians**
 
@@ -134,12 +189,8 @@ origin_df <- st_as_sf(origin_df,
 ```
 
 ```{r eval=FALSE}
-st_geometry(origin_df)
-tmap_mode('plot')
-tm_shape(sg_sf) +
-  tm_polygons() +
-  tm_shape(origin_df) +
-  tm_dots()
+tm_shape(origin_df) +
+  tm_dots() 
 ```
 
 ![](/image/THA-01.png)
@@ -168,6 +219,7 @@ origin_ppp <- as(origin_sp, "ppp")
 **Check for duplicate or overlap points**
 
 ```{r eval=FALSE}
+tmap_mode('plot')
 tm_shape(sg_sf) +
   tm_polygons() +
   tm_shape(origin) +
@@ -181,6 +233,14 @@ tm_shape(sg_sf) +
 any(duplicated(origin_ppp))
 sum(multiplicity(origin_ppp) > 1)
 ```
+**Removing Duplicate Points**
+```{r}
+origin_ppp <- rjitter(origin_ppp, 
+                             retry=TRUE, 
+                             nsim=1, 
+                             drop=TRUE)
+any(duplicated(origin_ppp))
+```
 
 **Convert to owin Object**
 
@@ -190,10 +250,13 @@ sg_owin <- as(sg_sp, "owin")
 
 **Combine Grabposisi Data with Coastal Outline**
 
-```{r}
+```{r eval=FALSE}
 origin_ppp = origin_ppp[sg_owin]
 plot(origin_ppp)
 ```
+
+![](/image/THA-16.png)
+
 
 # Exploratory Data Analysis
 
@@ -251,8 +314,7 @@ plot(density(origin_ppp.km,
      main="Disc")
 ```
 
-![](images/THA-04.jpg) 
-While the four KDE maps exhibit overall similarities, closer inspection reveals subtle differences in density patterns. For this analysis we will utilize the **Gaussian kernel** for this analysis.
+![](images/THA-04.jpg) While the four KDE maps exhibit overall similarities, closer inspection reveals subtle differences in density patterns. For this analysis we will utilize the **Gaussian kernel** for this analysis.
 
 ```{r eval=FALSE}
 kde_origin.ppl <- density(origin_ppp.km, 
@@ -270,8 +332,7 @@ plot(kde_origin.ppl, main = "Fixed bandwidth")
 plot(kde_origin_adaptive, main = "Adaptive bandwidth")
 ```
 
-![](images/THA-05.png) 
-Based on visual analysis of the KDE maps, fixed bandwidth will produce a more accurate and interpretable representation of the underlying data distribution as compared to adaptive bandwidth.
+![](images/THA-05.png) Based on visual analysis of the KDE maps, fixed bandwidth will produce a more accurate and interpretable representation of the underlying data distribution as compared to adaptive bandwidth.
 
 **Converting KDE into grid object**
 
@@ -297,11 +358,11 @@ tm_shape(kde_origin_ppl_raster) +
 The map reveals several distinct clusters of high-density points, particularly concentrated in the southeastern and southern quadrants. These clusters could be further analyzed by dividing them into five distinct regions.
 
 ## Network Kernel Density Estimation (NKDE)
+
 The five high-density regions identified in the standard KDE analysis will be the focus of network kernel density estimation. This will leverage the network's inherent connections and potentially uncover deeper insights and relationships within these areas.
 
-![](images/THA-14.png)
-**Retrieving the five study areas**
-Changi
+![](images/THA-14.png) **Retrieving the five study areas** Changi
+
 ```{r}
 ch <- mpsz_sf %>%
   filter(PLN_AREA_N == "CHANGI")
@@ -310,16 +371,20 @@ ch <- ch%>%
 ch <- st_make_valid(ch)
 length(which(st_is_valid(ch) == FALSE))
 ```
+
 Town
+
 ```{r}
 town <- mpsz_sf %>%
-  filter(CA_IND == "Y")
+  filter(PLN_AREA_N %in% c("OUTRAM","DOWNTOWN CORE","SINGAPORE RIVER","MUSEUM", "ROCHOR","RIVER VALLEY", "STRAITS VIEW", "MARINA SOUTH"))
 town <- town%>%
   st_union()
 town <- st_make_valid(town)
 length(which(st_is_valid(town) == FALSE))
 ```
+
 Woodlands
+
 ```{r}
 wood <- mpsz_sf %>%
   filter(PLN_AREA_N == "WOODLANDS")
@@ -328,7 +393,9 @@ wood <- wood%>%
 wood <- st_make_valid(wood)
 length(which(st_is_valid(wood) == FALSE))
 ```
+
 Choa Chu Kang
+
 ```{r}
 cck_bp <- mpsz_sf %>%
   filter(PLN_AREA_N %in% c("CHOA CHU KANG","BUKIT PANJANG"))
@@ -339,7 +406,9 @@ cck_bp <- cck_bp%>%
 cck_bp <- st_make_valid(cck_bp)
 length(which(st_is_valid(cck_bp) == FALSE))
 ```
+
 Jurong
+
 ```{r}
 jg <- mpsz_sf %>%
   filter(PLN_AREA_N %in% c("JURONG WEST","JURONG EAST","CLEMENTI"))
@@ -350,6 +419,7 @@ length(which(st_is_valid(jg) == FALSE))
 ```
 
 **Converting to SVY21 3414**
+
 ```{r}
 ch <- st_transform(ch, crs = 3414)
 town <- st_transform(town, crs = 3414)
@@ -357,7 +427,9 @@ wood <- st_transform(wood, crs = 3414)
 cck_bp <- st_transform(cck_bp, crs = 3414)
 jg <- st_transform(jg, crs = 3414)
 ```
+
 **Extracting the road layers for each individual area**
+
 ```{r warning=FALSE}
 ch_roads <- st_intersection(singapore_roads, ch)
 town_roads <- st_intersection(singapore_roads, town)
@@ -367,6 +439,7 @@ jg_roads <- st_intersection(singapore_roads, jg)
 ```
 
 **Visualising the extract spatial data**
+
 ```{r eval=FALSE}
 par(mfrow=c(2,3))
 plot(ch, main = "Changi Area")
@@ -378,147 +451,48 @@ plot(jg, main = "Jurong Area")
 
 ![](images/THA-07.png)
 
-```{=html}
-<style>
-.tabs {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-}
-
-.tab {
-  cursor: pointer;
-  padding: 10px;
-  background-color: #f2f2f2;
-  border: 1px solid #ccc;
-  border-radius: 5px 5px 0 0;
-}
-
-.tab:hover {
-  background-color: #ddd;
-}
-
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-.tab-content2 {
-  display: none;
-}
-
-.tab-content2.active {
-  display: block;
-}
-</style>
-```
-<!-- Define the tabs -->
-
-<ul class="tabs">
-
-<li class="tab active" onclick="showTab(&#39;tab1&#39;)">
-
-Changi
-
-</li>
-
-<li class="tab" onclick="showTab(&#39;tab2&#39;)">
-
-Town
-
-</li>
-
-<li class="tab" onclick="showTab(&#39;tab3&#39;)">
-
-Woodlands
-
-</li>
-
-<li class="tab" onclick="showTab(&#39;tab4&#39;)">
-
-Choa Chu Kang
-
-</li>
-
-<li class="tab" onclick="showTab(&#39;tab5&#39;)">
-
-Jurong
-
-</li>
-
-</ul>
-
-<!-- Define the tab content -->
-
-::: {#tab1 .tab-content .active}
-**Changi Area**
+::: {.panel-tabset .nav-pills}
+## Changi Area
 
 ```{r eval=FALSE}
-plot(ch_roads)
+plot(ch_roads[, c("osm_id", "name")])
 ```
 
 ![](images/Changi_Rd.png)
-:::
 
-::: {#tab2 .tab-content}
-**Town Area**
+## Town Area
 
 ```{r eval=FALSE}
-plot(town_roads)
+plot(town_roads[, c("osm_id", "name")])
 ```
 
 ![](images/Town_Rd.png)
-:::
 
-::: {#tab3 .tab-content}
-**Woodlands Area**
+## Woodlands Area
 
 ```{r eval=FALSE}
-plot(wood_roads)
+plot(wood_roads[, c("osm_id", "name")])
 ```
 
 ![](images/Woodlands_Rd.png)
-:::
 
-::: {#tab4 .tab-content}
-**Choa Chu Kang Area**
+## Choa Chu Kang Area
 
 ```{r eval=FALSE}
-plot(cck_bp_roads)
+plot(cck_bp_roads[, c("osm_id", "name")])
 ```
 
 ![](images/CCK_Rd.png)
-:::
 
-::: {#tab5 .tab-content}
-**Jurong Area**
+## Jurong Area
 
 ```{r eval=FALSE}
-plot(jg_roads)
+plot(jg_roads[, c("osm_id", "name")])
 ```
 
 ![](images/Jurong_Rd.png)
 :::
 
-```{=html}
-<script>
-function showTab(tabId) {
-  var selectedTab = document.getElementById(tabId);
-  selectedTab.classList.toggle('active');
-
-  var tabContents = document.querySelectorAll('.tab-content');
-  tabContents.forEach(function(content) {
-    if (content.id !== tabId) {
-      content.classList.remove('active');
-    }
-  });
-}
-</script>
-```
 ```{r eval=FALSE}
 tmap_arrange(tm_shape(ch_roads) +
                tm_lines(col = "red") +
@@ -541,6 +515,7 @@ tmap_arrange(tm_shape(ch_roads) +
 ![](images/THA-08.png)
 
 **Converting the geometry format to linestring.**
+
 ```{r warning=FALSE}
 ch_roads <- st_cast(ch_roads, "LINESTRING")
 town_roads <- st_cast(town_roads, "LINESTRING")
@@ -550,6 +525,7 @@ jg_roads <- st_cast(jg_roads, "LINESTRING")
 ```
 
 **Preparing lixels object & generating line centre points**
+
 ```{r eval=FALSE}
 lixels_ch <- lixelize_lines(ch_roads, 
                          700, 
@@ -569,6 +545,7 @@ lixels_jg <- lixelize_lines(jg_roads,
 ```
 
 **Retrieving the pickup points for each study area**
+
 ```{r eval=FALSE}
 samples_ch <- lines_center(lixels_ch)
 samples_town <- lines_center(lixels_town)
@@ -586,6 +563,7 @@ origin_jg = st_intersection(origin_df, jg)
 ```
 
 **Performing NetKDE**
+
 ```{r eval=FALSE}
 # This code is repeated for the remaining 5 area except the variables for [lines, events, w & samples]
 densities <- nkde(ch_roads, 
@@ -620,45 +598,8 @@ lixels_cck_bp = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_cck_bp.rds")
 lixels_jg = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_jg.rds")
 ```
 
-<!-- Define the tabs -->
-
-<ul class="tabs">
-
-<li class="tab active" onclick="showTab2(&#39;ta2b1&#39;)">
-
-Changi
-
-</li>
-
-<li class="tab" onclick="showTab2(&#39;ta2b2&#39;)">
-
-Town
-
-</li>
-
-<li class="tab" onclick="showTab2(&#39;ta2b3&#39;)">
-
-Woodlands
-
-</li>
-
-<li class="tab" onclick="showTab2(&#39;ta2b4&#39;)">
-
-Choa Chu Kang
-
-</li>
-
-<li class="tab" onclick="showTab2(&#39;ta2b5&#39;)">
-
-Jurong
-
-</li>
-
-</ul>
-
-<!-- Define the tab content -->
-
-::: {#ta2b1 .tab-content2 .active}
+::: {.panel-tabset .nav-pills}
+## Changi
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_ch)+
@@ -668,9 +609,9 @@ tm_shape(origin_ch)+
 ```
 
 ![](images/THA-09.png)
-:::
 
-::: {#ta2b2 .tab-content2}
+
+## Town
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_town)+
@@ -680,21 +621,17 @@ tm_shape(origin_town)+
 ```
 
 ![](images/THA-10.png)
-:::
 
-::: {#ta2b3 .tab-content2}
-```{r eval=FALSE}
-tmap_mode('plot')
+## Woodlands
+```{r}
+tmap_mode('view')
 tm_shape(lixels_wood)+
   tm_lines(col="density")+
 tm_shape(origin_wood)+
   tm_dots()
 ```
 
-![](images/THA-11.png)
-:::
-
-::: {#ta2b4 .tab-content2}
+## Choa Chu Kang
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_cck_bp)+
@@ -704,9 +641,8 @@ tm_shape(origin_cck_bp)+
 ```
 
 ![](images/THA-12.png)
-:::
 
-::: {#ta2b5 .tab-content2}
+## Jurong
 ```{r eval=FALSE}
 tmap_mode('plot')
 tm_shape(lixels_jg)+
@@ -721,19 +657,3 @@ tm_shape(origin_jg)+
 ::: callout-note
 Considering the large number/size of data points, **Woodlands** NetKDE visualization will be the sole area depicted on the **OpenStreetMap** of Singapore.
 :::
-
-```{=html}
-<script>
-function showTab2(tabId) {
-  var selectedTab = document.getElementById(tabId);
-  selectedTab.classList.toggle('active');
-
-  var tabContents = document.querySelectorAll('.tab-content2');
-  tabContents.forEach(function(content) {
-    if (content.id !== tabId) {
-      content.classList.remove('active');
-    }
-  });
-}
-</script>
-```
