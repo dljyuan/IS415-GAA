@@ -9,7 +9,7 @@ categories:
   - In-class Exercise
 title-block-categories: True
 ---
-
+**GWmodel** only focus on distance matrix 
 ```{r}
 pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)
 ```
@@ -38,4 +38,20 @@ basemap <- tm_shape(hunan) +
 
 gdppc <- qtm(hunan, "GDPPC")
 tmap_arrange(basemap, gdppc, asp=1, ncol=2)
+```
+
+```{r}
+hunan_sp <- hunan %>% 
+  as_Spatial()
+```
+
+Adaptive -> TRUE, bw = number of neighbours
+Adaptive -> FALSE, bw = the limit to max distance (e.g., 62km)
+```{r}
+gwstat <- gwss(data = hunan_sp,
+               vars = "GDPPC",
+               bw = 6,
+               kernel = "bisquare",
+               adaptive = TRUE,
+               longlat = T)
 ```
