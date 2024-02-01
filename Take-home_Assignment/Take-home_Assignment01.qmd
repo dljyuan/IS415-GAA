@@ -600,27 +600,25 @@ lixels_jg = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_jg.rds")
 
 ::: {.panel-tabset .nav-pills}
 ## Changi
-```{r eval=FALSE}
-tmap_mode('plot')
+```{r eval=TRUE}
+tmap_mode('view')
 tm_shape(lixels_ch)+
   tm_lines(col="density")+
 tm_shape(origin_ch)+
   tm_dots()
 ```
 
-![](images/THA-09.png)
 
 
 ## Town
-```{r eval=FALSE}
-tmap_mode('plot')
+```{r eval=TRUE}
+tmap_mode('view')
 tm_shape(lixels_town)+
   tm_lines(col="density")+
 tm_shape(origin_town)+
   tm_dots()
 ```
 
-![](images/THA-10.png)
 
 ## Woodlands
 ```{r}
@@ -632,28 +630,30 @@ tm_shape(origin_wood)+
 ```
 
 ## Choa Chu Kang
-```{r eval=FALSE}
-tmap_mode('plot')
+```{r eval=TRUE}
+tmap_mode('view')
 tm_shape(lixels_cck_bp)+
   tm_lines(col="density")+
 tm_shape(origin_cck_bp)+
   tm_dots()
 ```
 
-![](images/THA-12.png)
-
 ## Jurong
-```{r eval=FALSE}
-tmap_mode('plot')
+```{r eval=TRUE}
+tmap_mode('view')
 tm_shape(lixels_jg)+
   tm_lines(col="density")+
 tm_shape(origin_jg)+
   tm_dots()
 ```
-
-![](images/THA-13.png)
 :::
 
 ::: callout-note
-Considering the large number/size of data points, **Woodlands** NetKDE visualization will be the sole area depicted on the **OpenStreetMap** of Singapore.
+Enhance clarity by hovering over the map icon and deselecting 'origin_*' to reveal a more distinct concentration of pick-up points.
 :::
+
+# Conclusion
+The Grab Posisi dataset has provided numerous intriguing findings through the application of Spatial Point Analysis. In the course of the analysis, the findings can be used to assist drivers in identifying optimal areas for passenger pick-ups, ensuring a more efficient use of their working time. Furthermore, the analysis has the potential to reveal insights into the factors contributing to the various traffic hotspots in Singapore.
+
+
+
