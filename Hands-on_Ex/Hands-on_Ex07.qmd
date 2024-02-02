@@ -6,7 +6,7 @@ date-modified: "last-modified"
 date-format: "DD/MM/YYYY"
 editor: visual
 categories:
-  - In-class Exercise
+  - Hands-on Exercise
 title-block-categories: True
 ---
 

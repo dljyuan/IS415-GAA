@@ -6,7 +6,7 @@ date-modified: "last-modified"
 date-format: "DD/MM/YYYY"
 editor: visual
 categories:
-  - In-class Exercise
+  - Hands-on Exercise
 title-block-categories: True
 ---
 
@@ -15,6 +15,7 @@ pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
 ```
 
 # Overview
+
 In this hands-on exercise, you will learn how to compute Global Measures of Spatial Autocorrelation (GMSA) by using spdep package. By the end to this hands-on exercise, you will be able to:
 
 ```{r echo=FALSE}
@@ -29,16 +30,21 @@ knitr::kable(data)
 ```
 
 # Getting Started
+
 In spatial policy, one of the main development objective of the local government and planners is to ensure equal distribution of development in the province. Our task in this study, hence, is to apply appropriate spatial statistical methods to discover if development are even distributed geographically. If the answer is No. Then, our next question will be “is there sign of spatial clustering?”. And, if the answer for this question is yes, then our next question will be “where are these clusters?”
 
 In this case study, we are interested to examine the spatial pattern of a selected development indicator (i.e. GDP per capita) of [Hunan Provice](https://en.wikipedia.org/wiki/Hunan), People Republic of China.
 
 ## Setting the Analytical Tools
+
 ```{r eval=FALSE}
 pacman::p_load(sf, spdep, tmap, tidyverse, knitr)
 ```
+
 ## The Study Area and Data
+
 Two data sets will be used in this hands-on exercise, they are:
+
 ```{r echo=FALSE}
 # Your data
 data <- data.frame(
@@ -50,7 +56,9 @@ knitr::kable(data)
 ```
 
 # Getting the Data Into R Environment
+
 ## Import shapefile & csv file into r environment
+
 ```{r}
 hunan <- st_read(dsn = "../data/geospatial", 
                  layer = "Hunan")
@@ -58,11 +66,14 @@ hunan2012 <- read_csv("../data/aspatial/Hunan_2012.csv")
 ```
 
 ## Performing relational join
+
 ```{r}
 hunan <- left_join(hunan,hunan2012) %>%
   select(1:4, 7, 15)
 ```
+
 ## Visualising Regional Development Indicator
+
 ```{r}
 equal <- tm_shape(hunan) +
   tm_fill("GDPPC",
@@ -85,10 +96,13 @@ tmap_arrange(equal,
 ```
 
 # Global Measures of Spatial Autocorrelation
+
 In this section, you will learn how to compute global spatial autocorrelation statistics and to perform spatial complete randomness test for global spatial autocorrelation.
 
 ## Computing Contiguity Spatial Weights
+
 The code chunk below is used to compute Queen contiguity weight matrix
+
 ```{r}
 wm_q <- poly2nb(hunan, 
                 queen=TRUE)
@@ -96,6 +110,7 @@ summary(wm_q)
 ```
 
 ## Row-standardised weights matrix
+
 ```{r}
 rswm_q <- nb2listw(wm_q, 
                    style="W", 
@@ -105,15 +120,18 @@ rswm_q
 
 ::: callout-note
 # What can we learn from the code chunk above?
-* The input of nb2listw() must be an object of class nb. The syntax of the function has two major arguments, namely style and zero.poly.
-* style can take values “W”, “B”, “C”, “U”, “minmax” and “S”. B is the basic binary coding, W is row standardised (sums over all links to n), C is globally standardised (sums over all links to n), U is equal to C divided by the number of neighbours (sums over all links to unity), while S is the variance-stabilizing coding scheme proposed by Tiefelsdorf et al. 1999, p. 167-168 (sums over all links to n).
-* If zero policy is set to TRUE, weights vectors of zero length are inserted for regions without neighbour in the neighbours list. These will in turn generate lag values of zero, equivalent to the sum of products of the zero row t(rep(0, length=length(neighbours))) %*% x, for arbitrary numerical vector x of length length(neighbours). The spatially lagged value of x for the zero-neighbour region will then be zero, which may (or may not) be a sensible choice.
+
+-   The input of nb2listw() must be an object of class nb. The syntax of the function has two major arguments, namely style and zero.poly.
+-   style can take values “W”, “B”, “C”, “U”, “minmax” and “S”. B is the basic binary coding, W is row standardised (sums over all links to n), C is globally standardised (sums over all links to n), U is equal to C divided by the number of neighbours (sums over all links to unity), while S is the variance-stabilizing coding scheme proposed by Tiefelsdorf et al. 1999, p. 167-168 (sums over all links to n).
+-   If zero policy is set to TRUE, weights vectors of zero length are inserted for regions without neighbour in the neighbours list. These will in turn generate lag values of zero, equivalent to the sum of products of the zero row t(rep(0, length=length(neighbours))) %\*% x, for arbitrary numerical vector x of length length(neighbours). The spatially lagged value of x for the zero-neighbour region will then be zero, which may (or may not) be a sensible choice.
 :::
 
 # Global Measures of Spatial Autocorrelation: Moran’s I
+
 In this section, you will learn how to perform Moran’s I statistics testing by using [moran.test()](https://r-spatial.github.io/spdep/reference/moran.test.html) of spdep.
 
 ## Maron’s I test
+
 ```{r}
 moran.test(hunan$GDPPC, 
            listw=rswm_q, 
@@ -122,6 +140,7 @@ moran.test(hunan$GDPPC,
 ```
 
 ## Computing Monte Carlo Moran’s I
+
 ```{r}
 set.seed(1234)
 bperm= moran.mc(hunan$GDPPC, 
@@ -133,7 +152,9 @@ bperm
 ```
 
 ## Visualising Monte Carlo Moran’s I
+
 It is always a good practice for us the examine the simulated Moran’s I test statistics in greater detail. This can be achieved by plotting the distribution of the statistical values as a histogram by using the code chunk below.
+
 ```{r}
 mean(bperm$res[1:999])
 var(bperm$res[1:999])
@@ -150,15 +171,19 @@ abline(v=0,
 ```
 
 # Global Measures of Spatial Autocorrelation: Geary’s C
+
 In this section, you will learn how to perform Geary’s C statistics testing by using appropriate functions of **spdep** package.
 
 ## Geary’s C test
+
 The code chunk below performs Geary’s C test for spatial autocorrelation by using [geary.test()](https://r-spatial.github.io/spdep/reference/geary.test.html) of **spdep**.
+
 ```{r}
 geary.test(hunan$GDPPC, listw=rswm_q)
 ```
 
 ## Computing Monte Carlo Geary’s C
+
 ```{r}
 set.seed(1234)
 bperm=geary.mc(hunan$GDPPC, 
@@ -168,6 +193,7 @@ bperm
 ```
 
 ## Visualising the Monte Carlo Geary’s C
+
 ```{r}
 mean(bperm$res[1:999])
 var(bperm$res[1:999])
@@ -180,9 +206,11 @@ abline(v=1, col="red")
 ```
 
 # Spatial Correlogram
+
 Spatial correlograms are great to examine patterns of spatial autocorrelation in your data or model residuals. They show how correlated are pairs of spatial observations when you increase the distance (lag) between them - they are plots of some index of autocorrelation (Moran’s I or Geary’s c) against distance.Although correlograms are not as fundamental as variograms (a keystone concept of geostatistics), they are very useful as an exploratory and descriptive tool. For this purpose they actually provide richer information than variograms.
 
 ## Compute Moran’s I correlogram
+
 In the code chunk below, [sp.correlogram()](https://r-spatial.github.io/spdep/reference/sp.correlogram.html) of **spdep** package is used to compute a 6-lag spatial correlogram of GDPPC. The global spatial autocorrelation used in Moran’s I. The **plot()** of base Graph is then used to plot the output.
 
 ```{r}
@@ -203,6 +231,7 @@ print(MI_corr)
 ```
 
 ## Compute Geary’s C correlogram and plot
+
 ```{r}
 GC_corr <- sp.correlogram(wm_q, 
                           hunan$GDPPC, 
