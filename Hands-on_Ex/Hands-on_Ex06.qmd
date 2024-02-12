@@ -5,6 +5,10 @@ date: 01/25/2024
 date-modified: "last-modified"
 date-format: "DD/MM/YYYY"
 editor: visual
+execute: 
+  eval: true
+  echo: true
+  warning: false
 categories:
   - Hands-on Exercise
 title-block-categories: True

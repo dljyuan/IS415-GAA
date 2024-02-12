@@ -41,10 +41,14 @@ website:
           href: "In-class_Ex/In-class_Ex03.html"
         - text: "In-class Exercise 4"
           href: "In-class_Ex/In-class_Ex04.html"
+        - text: "In-class Exercise 5"
+          href: "In-class_Ex/In-class_Ex05.html"
     - text: "Take-home Assignment"
       menu: 
         - text: "Take-home Assignment 1"
           href: "Take-home_Assignment/Take-home_Assignment01.html"
+        - text: "Take-home Assignment 2"
+          href: "Take-home_Assignment/Take-home_Assignment02.html"
         
     right:
       - text: Home
