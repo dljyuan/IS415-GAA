@@ -1,0 +1,702 @@
+---
+title: "Take-home Assignment 02: Application of Spatial and Spatio-temporal Analysis Methods to Discover the Distribution of Dengue Fever in Tainan City, Taiwan **PART-1**"
+author: "Jin Yuan"
+date: 02/12/2024
+date-modified: "last-modified"
+date-format: "DD/MM/YYYY"
+editor: visual
+format: html
+categories:
+  - Take-home Assignment
+title-block-categories: false
+execute: 
+  warning: false
+---
+
+```{r echo=FALSE}
+pacman::p_load(knitr)
+```
+
+# Background
+
+Dengue Hemorrhagic Fever (in short dengue fever) is one of the most widespread mosquito-borne diseases in the most tropical and subtropical regions. It is an acute disease caused by dengue virus infection which is transmitted by female Aedes aegypti and Aedes albopictus mosquitoes. In 2015, Taiwan had recorded the most severe dengue fever outbreak with more than 43,000 dengue cases and 228 deaths. Since then, the annual reported dengue fever cases were maintained at the level of not more than 200 cases. However, in 2023, Taiwan recorded 26703 dengue fever cases.
+
+# Objective
+
+Explore and Uncovers:
+
+-   If the distribution of dengue fever outbreak at Tainan City, Taiwan are independent from space and space and time.
+-   If the outbreak is indeed spatial and spatio-temporal dependent, then, you would like to detect where are the clusters and outliers, and the emerging hot spot/cold spot areas.
+
+# Data Acquisition
+
+For the purpose of this take-home exercise, two data sets are used, they are:
+
+```{r echo=FALSE}
+# Your data
+data <- data.frame(
+  Dataset  = c("TAIWAN_VILLAGE_2020", "Dengue_Daily(csv)"),
+  Description = c("Geospatial data of village boundary of Taiwan","Aspatial data of reported dengue cases in Taiwan since 1998"),
+  Source = c(" [Historical map data of the village boundary: TWD97 longitude and latitude](https://data.gov.tw/en/datasets/130549)", "[Dengue Daily Confirmed Cases Since 1998](https://data.cdc.gov.tw/en/dataset/dengue-daily-determined-cases-1998)"))
+
+# Display the table
+knitr::kable(data)
+```
+
+# Install Packages & Importing Data
+
+## Install Necessary Packages
+
+For this assignment, we will be using the following packages:
+
+```{r echo=FALSE}
+# Your data
+data <- data.frame(
+  Package  = c("[sf](https://cran.r-project.org/web/packages/sf/): Import geospatial data", "[spdep](https://sfdep.josiahparry.com/): Perform global & local spatial autocorrelation and emerging hotspot analysis.", "[tmap](https://cran.r-project.org/web/packages/tmap/): To visualise the analysis output", "[tidyverse](https://www.tidyverse.org/): For comprehensive data science tasks, including importing, wrangling, and visualizing spatial data"))
+
+# Display the table
+knitr::kable(data)
+```
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse)
+```
+
+## Importing Data
+
+### Geospatial Data
+
+```{r eval=FALSE}
+tainan <- st_read(dsn = "../data/geospatial", 
+                 layer = "TAINAN_VILLAGE")
+```
+
+### Aspatial Data
+
+```{r eval=FALSE}
+dengue <- read_csv("../data/aspatial/Dengue_Daily.csv")
+```
+
+# Data Wrangling
+
+**Confine dengue data to only include Tainan City dengue cases**
+
+```{r eval=FALSE}
+dengue <- dengue %>%
+  filter(居住縣市 == "台南市")
+```
+
+**Confine tainan data to only include interest TownID: D01, D02, D04, D06, D07, D08, D32 & D39**
+
+```{r eval=FALSE}
+tainan <- tainan[tainan$TOWNID %in% c("D01", "D02", "D04", "D06", "D07", "D08", "D32", "D39"), ]
+```
+
+## Aligning data for geospatial and aspatial data
+
+**Converting values from traditional to simplified Chinese**
+
+```{r eval=FALSE}
+tainan$COUNTYNAME <- ifelse(tainan$COUNTYNAME == "臺南市", "台南市", as.character(tainan$COUNTYNAME))
+```
+
+**Renaming columns titles**
+
+```{r eval=FALSE}
+dengue <- dengue %>%
+  rename('COUNTYNAME' = 居住縣市,
+         'TOWNNAME' = 居住鄉鎮,
+         'VILLNAME' = 居住村里)
+```
+
+## Extracting cases of interest within specific period
+**Append new columns for epidemiology week & year to dengue data**
+```{r eval=FALSE}
+dengue$WEEK <- as.numeric(format(dengue$發病日, "%V"))
+dengue$YEAR <- as.numeric(format(dengue$發病日, "%Y"))
+```
+**Confine period to include only epidemiology week 31-50 in year 2023**
+```{r eval=FALSE}
+dengue <- dengue[dengue$WEEK >= 31 & dengue$WEEK <= 50 & dengue$YEAR == 2023, ]
+```
+
+## Manipulating Data
+
+**Ensure the values of age range stay consistent**
+
+```{r eval=FALSE}
+dengue$年齡層 <- ifelse(dengue$年齡層 %in% c("0", "1", "2", "3", "4", "5-9"), "0-9", as.character(dengue$年齡層))
+```
+
+**Enhance the clarity of values to distinguish between those originating locally and those from overseas**
+
+```{r eval=FALSE}
+dengue$感染國家 <- ifelse(dengue$是否境外移入 == "是", "Overseas", as.character(dengue$感染國家))
+dengue$感染國家 <- ifelse(dengue$是否境外移入 == "否", "Local", as.character(dengue$感染國家))
+```
+
+# Plotting Choropleth Map
+
+```{r eval=FALSE}
+village <- dengue %>%
+  group_by(TOWNNAME,VILLNAME) %>%
+  summarise(CASES = sum(確定病例數))
+
+dist_vill <- dengue %>%
+  group_by(TOWNNAME,VILLNAME, WEEK) %>%
+  summarise(CASES = sum(確定病例數))
+```
+
+::: callout-note
+As some town have similar village name required to group by both TOWNNAME & VILL NAME
+:::
+
+**Getting the geospatial properties from tainan layers**
+```{r eval=FALSE}
+#temp <- left_join(tainan,village)
+dist_vill <- left_join(tainan,dist_vill) %>%
+ select(2:4, 11, 12)
+village <- left_join(tainan,village) %>%
+ select(2:4, 11)
+```
+
+```{r echo=FALSE, eval=FALSE}
+unique(village$VILLNAME)
+```
+```{r eval=FALSE, echo=FALSE}
+dengue <- left_join(tainan,dengue) %>%
+  select(2:4, 11, 13, 14, 15, 17, 18, 24:26)
+```
+
+```{r eval=FALSE, echo=FALSE}
+dengue <- st_transform(dengue, crs = 3414)
+dist_vill <- st_transform(dist_vill, crs = 3414)
+write_rds(dengue, "/dljyuan/IS415-GAA/data/rds/dengue_tha2.rds")
+write_rds(tainan, "/dljyuan/IS415-GAA/data/rds/tainan_tha2.rds")
+write_rds(village, "/dljyuan/IS415-GAA/data/rds/village_tha2.rds")
+write_rds(dist_vill, "/dljyuan/IS415-GAA/data/rds/dist_vill_tha2.rds")
+```
+
+```{r echo=FALSE}
+dengue <- read_rds("/dljyuan/IS415-GAA/data/rds/dengue_tha2.rds")
+tainan <- read_rds("/dljyuan/IS415-GAA/data/rds/tainan_tha2.rds")
+village <- read_rds("/dljyuan/IS415-GAA/data/rds/village_tha2.rds")
+dist_vill <- read_rds("/dljyuan/IS415-GAA/data/rds/dist_vill_tha2.rds")
+```
+
+**Convert CRS of data projection to SVY21**
+```{r}
+tainan <- st_transform(tainan, crs = 3414)
+village <- st_transform(village, crs = 3414)
+```
+
+**Fill villages with no dengue records to zero**
+```{r}
+village$CASES[is.na(village$CASES)] <- 0
+```
+::: callout-note
+**Assumption**: The villages do not have any dengue cases
+:::
+
+```{r}
+tmap_mode("plot")
+tm_shape(village) +
+  tm_fill("CASES",
+          style = "quantile",
+          palette = "Reds",
+          title = "Dengue Cases") +
+  tm_layout(main.title = "Distribution of Dengue Cases",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2)
+
+```
+
+::: {.panel-tabset .nav-pills}
+## August
+
+```{r eval=TRUE}
+aug <- dist_vill %>%
+  filter(WEEK >= 31 & WEEK <= 35)
+```
+```{r eval=TRUE, echo=FALSE}
+aug <- st_drop_geometry(aug)
+aug <- left_join(tainan,aug)
+aug$CASES[is.na(aug$CASES)] <- 0
+```
+```{r eval=TRUE}
+tmap_mode("plot")
+tm_shape(aug) +
+  tm_fill("CASES",
+          style = "quantile",
+          palette = "Reds",
+          title = "Dengue Cases") +
+  tm_layout(main.title = "August 2023 Distribution of Dengue Cases",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2)
+```
+
+## September
+
+```{r eval=TRUE}
+sep <- dist_vill %>%
+  filter(WEEK >= 36 & WEEK <= 39)
+```
+```{r echo=FALSE}
+sep <- st_drop_geometry(sep)
+sep <- left_join(tainan,sep)
+sep$CASES[is.na(sep$CASES)] <- 0
+```
+```{r}
+tmap_mode("plot")
+tm_shape(sep) +
+  tm_fill("CASES",
+          style = "quantile",
+          palette = "Reds",
+          title = "Dengue Cases") +
+  tm_layout(main.title = "August 2023 Distribution of Dengue Cases",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2)
+```
+
+## October
+
+```{r}
+oct <- dist_vill %>%
+  filter(WEEK >= 40 & WEEK <= 44)
+```
+```{r echo=FALSE}
+oct <- st_drop_geometry(oct)
+oct <- left_join(tainan,oct)
+oct$CASES[is.na(oct$CASES)] <- 0
+```
+```{r}
+tmap_mode("plot")
+tm_shape(oct) +
+  tm_fill("CASES",
+          style = "quantile",
+          palette = "Reds",
+          title = "Dengue Cases") +
+  tm_layout(main.title = "August 2023 Distribution of Dengue Cases",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2)
+```
+
+## November
+
+```{r eval=TRUE}
+nov <- dist_vill %>%
+  filter(WEEK >= 45 & WEEK <= 48)
+```
+```{r echo=FALSE}
+nov <- st_drop_geometry(nov)
+nov <- left_join(tainan,nov)
+nov$CASES[is.na(nov$CASES)] <- 0
+```
+```{r}
+tmap_mode("plot")
+tm_shape(nov) +
+  tm_fill("CASES",
+          style = "quantile",
+          palette = "Reds",
+          title = "Dengue Cases") +
+  tm_layout(main.title = "August 2023 Distribution of Dengue Cases",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2)
+```
+
+## December
+
+```{r eval=TRUE}
+dec <- dist_vill %>%
+  filter(WEEK >= 49 & WEEK <= 50)
+```
+```{r echo=FALSE}
+dec <- st_drop_geometry(dec)
+dec <- left_join(tainan,dec)
+dec$CASES[is.na(dec$CASES)] <- 0
+```
+```{r}
+tmap_mode("plot")
+tm_shape(dec) +
+  tm_fill("CASES",
+          style = "quantile",
+          palette = "Reds",
+          title = "Dengue Cases") +
+  tm_layout(main.title = "August 2023 Distribution of Dengue Cases",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2)
+```
+:::
+
+# Global Spatial Autocorrelation Analysis
+
+## Computing Contiguity Spatial Weights (Queen)
+In the code chunk below, queen method is used to derive the contiguity weights.
+```{r}
+wm_q <- village %>%
+  mutate(nb = st_contiguity(geometry, queen = TRUE),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1) 
+wm_q
+```
+
+## Computing Global Moran'I
+```{r}
+moranI <- global_moran(wm_q$CASES,
+                       wm_q$nb,
+                       wm_q$wt)
+glimpse(moranI)
+```
+
+## Performing Global Moran’s I test
+```{r}
+global_moran_test(wm_q$CASES,
+                       wm_q$nb,
+                       wm_q$wt)
+```
+
+## Performing Global Moran’I permutation test
+```{r}
+set.seed(1234)
+global_moran_perm(wm_q$CASES,
+                       wm_q$nb,
+                       wm_q$wt,
+                  nsim = 99)
+```
+The statistical report above show that the p-value is smaller than alpha value of 0.05. Hence, we have enough statistical evidence to reject the null hypothesis that the spatial distribution of dengue cases per counties resemble random distribution (i.e. independent from spatial). Because the Moran’s I statistics is greater than 0. We can infer that the spatial distribution shows sign of clustering.
+
+# Local Spatial Autocorrelation Analysis
+## Computing local Moran’s I
+```{r}
+lisa <- wm_q %>% 
+  mutate(local_moran = local_moran(
+    CASES, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+## Visualising local Moran’s I
+**In this code chunk below, tmap functions are used prepare a choropleth map by using value in the ii field.**
+```{r}
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of Dengue Cases",
+            main.title.size = 0.8)
+```
+## Visualising p-value of local Moran’s I
+**In the code chunk below, tmap functions are used prepare a choropleth map by using value in the p_ii_sim field.**
+```{r}
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_fill("p_ii_sim") + 
+  tm_borders(alpha = 0.5) +
+   tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+```
+## Visuaising local Moran’s I and p-value
+**For effective comparison, it will be better for us to plot both maps next to each other as shown below.**
+```{r}
+tmap_mode("plot")
+map1 <- tm_shape(lisa) +
+  tm_fill("ii") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of Dengue Cases",
+            main.title.size = 0.8)
+
+map2 <- tm_shape(lisa) +
+  tm_fill("p_ii",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of local Moran's I",
+            main.title.size = 0.8)
+
+tmap_arrange(map1, map2, ncol = 2)
+```
+
+## Visualising LISA map
+LISA map is a categorical map showing outliers and clusters. There are two types of outliers namely: High-Low and Low-High outliers. Likewise, there are two type of clusters namely: High-High and Low-Low clusters. In fact, LISA map is an interpreted map by combining local Moran’s I of geographical areas and their respective p-values.
+```{r}
+lisa_sig <- lisa  %>%
+  filter(p_ii < 0.05)
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(lisa_sig) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+```
+The spatial analysis of the map highlights a pronounced clustering of dengue cases with elevated incidence rates concentrated towards the central regions of Tainan. In contrast, areas situated towards the periphery on the left corner exhibit markedly lower incidence rates of dengue cases
+
+# Hot Spot and Cold Spot Area Analysis (HCSA)
+HCSA uses spatial weights to identify locations of statistically significant hot spots and cold spots in an spatially weighted attribute that are in proximity to one another based on a calculated distance. The analysis groups features when similar high (hot) or low (cold) values are found in a cluster. The polygon features usually represent administration boundaries or a custom grid structure.
+
+# Computing local Gi* statistics
+**Derive spatial weight matrix**
+```{r}
+wm_idw <- village %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+```
+
+::: callout-note
+Gi* and local Gi* are distance-based spatial statistics. Hence, distance methods instead of contiguity methods should be used to derive the spatial weight matrix.
+:::
+
+```{r}
+HCSA <- wm_idw %>% 
+  mutate(local_Gi = local_gstar_perm(
+    CASES, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+HCSA
+```
+
+## Visualising Gi*
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8))
+```
+## Visualising p-value of HCSA
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("p_sim") + 
+  tm_borders(alpha = 0.5)
+```
+## Visuaising local HCSA
+**For effective comparison, you can plot both maps next to each other as shown below.**
+```{r}
+tmap_mode("plot")
+map1 <- tm_shape(HCSA) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "Gi* of GDPPC",
+            main.title.size = 0.8)
+
+map2 <- tm_shape(HCSA) +
+  tm_fill("p_value",
+          breaks = c(0, 0.001, 0.01, 0.05, 1),
+              labels = c("0.001", "0.01", "0.05", "Not sig")) + 
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "p-value of Gi*",
+            main.title.size = 0.8)
+
+tmap_arrange(map1, map2, ncol = 2)
+```
+# Visualising hot spot and cold spot areas
+```{r}
+HCSA_sig <- HCSA  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+
+Figure above reveals that there is five hot spot area and two cold spot areas. Interestingly, the hot spot & cold spot areas patterns coincide with the cluster identifies by using local Moran’s I method in the earlier sub-section.
+
+## Visualising hot spot and cold spot areas for August to December
+::: {.panel-tabset .nav-pills}
+## August
+
+```{r eval=TRUE}
+#| code-fold: true
+#| code-summary: "Show Code"
+wm_idw_aug <- aug %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+HCSA_aug <- wm_idw_aug %>% 
+  mutate(local_Gi = local_gstar_perm(
+    CASES, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+
+HCSA_sig_aug <- HCSA_aug  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA_aug) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig_aug) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+
+## September
+
+```{r eval=TRUE}
+#| code-fold: true
+#| code-summary: "Show Code"
+wm_idw_sep <- sep %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+HCSA_sep <- wm_idw_sep %>% 
+  mutate(local_Gi = local_gstar_perm(
+    CASES, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+
+HCSA_sig_sep <- HCSA_sep  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA_sep) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig_sep) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+
+## October
+
+```{r eval=TRUE}
+#| code-fold: true
+#| code-summary: "Show Code"
+wm_idw_oct <- oct %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+HCSA_oct <- wm_idw_oct %>% 
+  mutate(local_Gi = local_gstar_perm(
+    CASES, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+
+HCSA_sig_oct <- HCSA_oct  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA_oct) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig_oct) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+
+## November
+
+```{r eval=TRUE}
+#| code-fold: true
+#| code-summary: "Show Code"
+wm_idw_nov <- nov %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+HCSA_nov <- wm_idw_nov %>% 
+  mutate(local_Gi = local_gstar_perm(
+    CASES, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+
+HCSA_sig_nov <- HCSA_nov  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA_nov) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig_nov) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+
+## December
+
+```{r eval=TRUE}
+#| code-fold: true
+#| code-summary: "Show Code"
+wm_idw_dec <- dec %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+HCSA_dec <- wm_idw_dec %>% 
+  mutate(local_Gi = local_gstar_perm(
+    CASES, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+
+HCSA_sig_dec <- HCSA_dec  %>%
+  filter(p_sim < 0.05)
+tmap_mode("plot")
+tm_shape(HCSA_dec) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA_sig_dec) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+:::
+
+:::callout-warning
+See Part 2 for EHSA and conclusion of this assignment.
+:::
