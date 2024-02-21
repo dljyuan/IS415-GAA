@@ -1,5 +1,5 @@
 ---
-title: "R for Geospatial Data Science"
+title: "In-class Exercise 02: R for Geospatial Data Science"
 execute: 
   eval: true
   echo: true
@@ -8,6 +8,9 @@ author: "Jin Yuan"
 date: 01/15/2024
 date-format: "DD/MM/YYYY"
 editor: visual
+categories:
+  - In-class Exercise
+title-block-categories: True
 ---
 
 ## Getting Started

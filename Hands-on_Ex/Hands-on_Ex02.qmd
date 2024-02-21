@@ -1,9 +1,14 @@
 ---
 title: "Hands-on Exercise 2: Thematic Mapping and GeoVisualisation with R"
 execute: 
+  eval: true
+  echo: true
   warning: false
 date: 01/15/2024
 date-format: "DD/MM/YYYY"
+categories:
+  - Hands-on Exercise
+title-block-categories: True
 ---
 
 # Getting Hands Dirty with TMaps

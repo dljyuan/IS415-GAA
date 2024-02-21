@@ -1,5 +1,5 @@
 ---
-title: "Kernel Density Estimation"
+title: "In-class Exercise 03: Kernel Density Estimation"
 execute: 
   eval: true
   echo: true
@@ -9,6 +9,9 @@ date: 01/22/2024
 date-modified: "last-modified"
 date-format: "DD/MM/YYYY"
 editor: visual
+categories:
+  - In-class Exercise
+title-block-categories: True
 ---
 
 # Importing Packages

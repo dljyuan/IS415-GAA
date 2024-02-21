@@ -13,12 +13,16 @@ categories:
   - In-class Exercise
 title-block-categories: True
 ---
+
 # Getting Started
+
 ## Installing & Loading the R packages
+
 Four R packages will be used for this in-class exercise, they are: sf, sfdep, tmap, tidyverse.
 
 ::: callout-note
 # Do it Yourself!
+
 Using the steps you learned in previous lesson, install and load **sf**, **tmap**, **sfdep** and **tidyverse** packages into R environment.
 :::
 
@@ -27,24 +31,28 @@ pacman::p_load(sf, sfdep, tmap, tidyverse)
 ```
 
 # The Data
+
 For the purpose of this in-class exercise, the Hunan data sets will be used. There are 2 data sets in this use case, they are:
 
-* Huan, a geospatial data set in ESRI shapefile format, and
-* Hunan_2012, an atribute data set in csv format.
+-   Huan, a geospatial data set in ESRI shapefile format, and
+-   Hunan_2012, an atribute data set in csv format.
 
 ## Importing geospatial data
+
 ```{r}
 hunan <- st_read(dsn = "../data/geospatial", 
                  layer = "Hunan")
 ```
 
 ## Importing attribute table
+
 ```{r}
 hunan2012 <- read_csv("../data/aspatial/Hunan_2012.csv")
 ```
 
 ::: callout-note
 # Important
+
 In order to retain the geospatial properties, the left data frame must be the sf data.frame (i.e hunan)
 :::
 
@@ -54,6 +62,7 @@ hunan_GDPPC <- left_join(hunan,hunan2012) %>%
 ```
 
 ## Plotting a choropleth map
+
 ```{r}
 tmap_mode('plot')
 tm_shape(hunan_GDPPC) +
@@ -74,6 +83,7 @@ tm_shape(hunan_GDPPC) +
 ```
 
 # Global Measures of Spatial Association
+
 ## Deriving contiguity weights: Queen's method
 
 ```{r}
@@ -86,7 +96,9 @@ wm_q <- hunan_GDPPC %>%
 ```
 
 ## Computing Global Moran'I
+
 In the code chunk below, global_moran() function is used to compute the Moran'I value. Different from spdep package, the output is a tibble data.frame.
+
 ```{r}
 moranI <- global_moran(wm_q$GDPPC,
                        wm_q$nb,
@@ -94,21 +106,25 @@ moranI <- global_moran(wm_q$GDPPC,
 glimpse(moranI)
 ```
 
-
 ## Performing Global Moran'I permuation test
+
 In practice, monte carlo simulation should be used to perform the statistical test. For sfdep, it is supported by global_moran_perm().
 
 It is always a good practice to use set.seed() before performing simulation. This is to ensure that the computation is reproducible.
+
 ```{r}
 set.seed(1234)
 ```
+
 Next global_moran_perm() is used to perform Monte's Carlo simulation.
+
 ```{r}
 global_moran_perm(wm_q$GDPPC,
                        wm_q$nb,
                        wm_q$wt,
                   nsim = 99)
 ```
+
 The statistical report above show that the p-value is smaller than alpha value of 0.05. Hence, we have enough statistical evidence to reject the null hypothesis that the spatial distribution of GDP per capital are resemble random distribution (i.e. independent from spatial). Because the Moran's I statistics is greater than 0. We can infer that the spatial distribution shows sign of clustering.
 
 ::: callout-note
@@ -116,4 +132,3 @@ If the computer is slow, can set simulation to 99 instead of 999. 99 should be a
 
 The numbers of simulation is always equal to nsim + 1. This mean in nsim = 99, This mean 100 simulation will be performed.
 :::
-

@@ -4,6 +4,9 @@ execute:
   warning: false
 date: 01/08/2024
 date-format: "DD/MM/YYYY"
+categories:
+  - Hands-on Exercise
+title-block-categories: True
 ---
 
 # Getting Started

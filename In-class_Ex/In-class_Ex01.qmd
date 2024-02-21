@@ -1,5 +1,5 @@
 ---
-title: "Nothing here"
+title: "In-class Exercise 01: Nothing here"
 editor: visual
 execute: 
   warning: false
@@ -8,6 +8,9 @@ margin-header: |
 date: 01/08/2024
 date-format: "DD/MM/YYYY"
 author: "Jin Yuan"
+categories:
+  - In-class Exercise
+title-block-categories: True
 ---
 
 ## Getting Started

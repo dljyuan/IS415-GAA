@@ -9,7 +9,9 @@ categories:
   - In-class Exercise
 title-block-categories: True
 ---
-**GWmodel** only focus on distance matrix 
+
+**GWmodel** only focus on distance matrix
+
 ```{r}
 pacman::p_load(sf, spdep, tmap, tidyverse, knitr, GWmodel)
 ```
@@ -22,13 +24,14 @@ hunan <- st_read(dsn = "../data/geospatial",
 ```{r}
 hunan2012 <- read_csv("../data/aspatial/Hunan_2012.csv")
 ```
-Specifying the variables from hunan2012 **[columns 1,2,3,4,7,15]**
-As hunan is in sf (simple features) got addition geometry variables.
+
+Specifying the variables from hunan2012 **\[columns 1,2,3,4,7,15\]** As hunan is in sf (simple features) got addition geometry variables.
 
 ```{r}
 hunan <- left_join(hunan, hunan2012) %>%
   select(1:4,7,15)
 ```
+
 ```{r}
 #| fig-width: 12
 #| fig-height: 8
@@ -45,8 +48,8 @@ hunan_sp <- hunan %>%
   as_Spatial()
 ```
 
-Adaptive -> TRUE, bw = number of neighbours
-Adaptive -> FALSE, bw = the limit to max distance (e.g., 62km)
+Adaptive -\> TRUE, bw = number of neighbours Adaptive -\> FALSE, bw = the limit to max distance (e.g., 62km)
+
 ```{r}
 gwstat <- gwss(data = hunan_sp,
                vars = "GDPPC",

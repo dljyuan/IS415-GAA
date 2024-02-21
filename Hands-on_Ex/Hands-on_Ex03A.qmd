@@ -1,5 +1,5 @@
 ---
-title: "1st Order Spatial Point Patterns Analysis Methods"
+title: "Hands-on Exercise 3A: 1st Order Spatial Point Patterns Analysis Methods"
 execute: 
   eval: true
   echo: true
@@ -8,6 +8,9 @@ author: "Jin Yuan"
 date: 01/18/2024
 date-format: "DD/MM/YYYY"
 editor: visual
+categories:
+  - Hands-on Exercise
+title-block-categories: True
 ---
 
 # Getting Started

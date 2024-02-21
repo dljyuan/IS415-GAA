@@ -9,6 +9,9 @@ date: 01/22/2024
 date-modified: "last-modified"
 date-format: "DD/MM/YYYY"
 editor: visual
+categories:
+  - Hands-on Exercise
+title-block-categories: True
 ---
 
 # Install Packages
