@@ -1,0 +1,16 @@
+---
+title: "Hands-on Exercise 09: Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method"
+author: "Jin Yuan"
+date: 02/22/2024
+date-modified: "last-modified"
+date-format: "DD/MM/YYYY"
+editor: visual
+format: html
+categories:
+  - Hands-on Assignment
+title-block-categories: false
+execute: 
+  eval: true
+  echo: true
+  warning: false
+---

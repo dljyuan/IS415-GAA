@@ -10,6 +10,8 @@ categories:
   - Take-home Assignment
 title-block-categories: false
 execute: 
+  eval: true
+  echo: true
   warning: false
 ---
 
