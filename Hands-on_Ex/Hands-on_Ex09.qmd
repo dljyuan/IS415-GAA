@@ -7,7 +7,7 @@ date-format: "DD/MM/YYYY"
 editor: visual
 format: html
 categories:
-  - Hands-on Assignment
+  - Hands-on Exercise
 title-block-categories: false
 execute: 
   eval: true
