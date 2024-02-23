@@ -299,7 +299,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#visualising-hot-spot-and-cold-spot-areas" id="toc-visualising-hot-spot-and-cold-spot-areas" class="nav-link" data-scroll-target="#visualising-hot-spot-and-cold-spot-areas">Visualising hot spot and cold spot areas</a>
   <ul class="collapse">
-  <li><a href="#getting-top-hotspot-village-for-man-kendall-test" id="toc-getting-top-hotspot-village-for-man-kendall-test" class="nav-link" data-scroll-target="#getting-top-hotspot-village-for-man-kendall-test">Getting Top Hotspot Village for Man-Kendall Test</a></li>
+  <li><a href="#getting-top-five-hotspot-villages-for-man-kendall-test" id="toc-getting-top-five-hotspot-villages-for-man-kendall-test" class="nav-link" data-scroll-target="#getting-top-five-hotspot-villages-for-man-kendall-test">Getting Top Five Hotspot Villages for Man-Kendall Test</a></li>
   <li><a href="#visualising-hot-spot-and-cold-spot-areas-for-august-to-december" id="toc-visualising-hot-spot-and-cold-spot-areas-for-august-to-december" class="nav-link" data-scroll-target="#visualising-hot-spot-and-cold-spot-areas-for-august-to-december">Visualising hot spot and cold spot areas for August to December</a></li>
   </ul></li>
   </ul>
@@ -1089,16 +1089,16 @@ Projected CRS: SVY21 / Singapore TM
 </div>
 </div>
 <p>Figure above reveals that there is five hot spot area and two cold spot areas. Interestingly, the hot spot &amp; cold spot areas patterns coincide with the cluster identifies by using local Moran’s I method in the earlier sub-section.</p>
-<section id="getting-top-hotspot-village-for-man-kendall-test" class="level2">
-<h2 class="anchored" data-anchor-id="getting-top-hotspot-village-for-man-kendall-test">Getting Top Hotspot Village for Man-Kendall Test</h2>
+<section id="getting-top-five-hotspot-villages-for-man-kendall-test" class="level2">
+<h2 class="anchored" data-anchor-id="getting-top-five-hotspot-villages-for-man-kendall-test">Getting Top Five Hotspot Villages for Man-Kendall Test</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>((HCSA_sig[HCSA_sig<span class="sc">$</span>gi_star <span class="sc">&gt;</span> <span class="dv">4</span>, ])<span class="sc">$</span>TOWNNAME)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>((HCSA_sig[HCSA_sig<span class="sc">$</span>gi_star <span class="sc">&gt;</span> <span class="dv">4</span>, ]), <span class="dv">5</span>)<span class="sc">$</span>TOWNNAME)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "東區"   "東區"   "安南區" "安南區" "永康區" "安南區"</code></pre>
+<pre><code>[1] "東區"   "東區"   "安南區" "安南區" "永康區"</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>((HCSA_sig[HCSA_sig<span class="sc">$</span>gi_star <span class="sc">&gt;</span> <span class="dv">4</span>, ])<span class="sc">$</span>VILLNAME)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>((HCSA_sig[HCSA_sig<span class="sc">$</span>gi_star <span class="sc">&gt;</span> <span class="dv">4</span>, ]), <span class="dv">5</span>)<span class="sc">$</span>VILLNAME)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "崇信里" "自強里" "海佃里" "溪墘里" "三合里" "大安里"</code></pre>
+<pre><code>[1] "崇信里" "自強里" "海佃里" "溪墘里" "三合里"</code></pre>
 </div>
 </div>
 </section>

@@ -175,7 +175,7 @@ gi_stars <- CASES_nb %>%
 
 ## Man-Kendall Test
 
-With these Gi\* measures we can then evaluate the locations highlighted in the PART 1 of the assignment for a trend using the Mann-Kendall test.
+With these Gi\* measures we can then evaluate the hotspot locations(Villages) highlighted in the PART 1 of the assignment for a trend using the Mann-Kendall test.
 
 ::: {.panel-tabset .nav-pills}
 ## 東區-崇信里
@@ -265,33 +265,6 @@ cbg %>%
 cbg <- gi_stars %>% 
   ungroup() %>% 
   filter(combined_location == "安南區-溪墘里") |> 
-  select(combined_location, WEEK, gi_star)
-```
-
-```{r}
-p <- ggplot(data = cbg, 
-       aes(x = WEEK, 
-           y = gi_star)) +
-  geom_line() +
-  theme_light()
-
-ggplotly(p)
-```
-
-```{r}
-cbg %>%
-  summarise(mk = list(
-    unclass(
-      Kendall::MannKendall(gi_star)))) %>% 
-  tidyr::unnest_wider(mk)
-```
-
-## 安南區-大安里
-
-```{r}
-cbg <- gi_stars %>% 
-  ungroup() %>% 
-  filter(combined_location == "安南區-大安里") |> 
   select(combined_location, WEEK, gi_star)
 ```
 
