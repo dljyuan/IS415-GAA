@@ -605,6 +605,12 @@ tm_shape(HCSA_sig) +
 
 Figure above reveals that there is five hot spot area and two cold spot areas. Interestingly, the hot spot & cold spot areas patterns coincide with the cluster identifies by using local Moran’s I method in the earlier sub-section.
 
+## Getting Top Hotspot Village for Man-Kendall Test
+```{r}
+print((HCSA_sig[HCSA_sig$gi_star > 4, ])$TOWNNAME)
+print((HCSA_sig[HCSA_sig$gi_star > 4, ])$VILLNAME)
+```
+
 ## Visualising hot spot and cold spot areas for August to December
 
 ::: {.panel-tabset .nav-pills}
