@@ -91,8 +91,6 @@ tainan$combined_location <- paste(tainan$TOWNNAME, tainan$VILLNAME, sep = "-")
 ```
 
 ```{r}
-#dengue <- dengue[dengue["x-coordinate"] != "None", ]
-#dengue_sf <- st_as_sf(dengue, coords = c("x-coordinate", "y-coordinate"), crs = 3824)
 dengue <- dengue %>%
   group_by(WEEK,combined_location) %>%
   summarise(CASES = sum(確定病例數))
@@ -107,7 +105,7 @@ dengue_sf <- st_drop_geometry(dengue_sf)
 print(dengue_sf[rowSums(is.na(dengue_sf)) > 0, ])
 ```
 
-```{r}
+```{r echo=FALSE}
 # Get unique locations
 unique_locations <- unique(dengue_sf$combined_location)
 
