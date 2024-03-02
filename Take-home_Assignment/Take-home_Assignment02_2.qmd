@@ -84,12 +84,13 @@ dengue <- dengue[dengue$WEEK >= 31 & dengue$WEEK <= 50 & dengue$YEAR == 2023, ]
 tainan <- st_transform(tainan, crs = 3414)
 ```
 
+**Combined towname and villname to differentiate different village with similar name**
 ```{r}
-# Create spacetime object
 dengue$combined_location <- paste(dengue$TOWNNAME, dengue$VILLNAME, sep = "-")
 tainan$combined_location <- paste(tainan$TOWNNAME, tainan$VILLNAME, sep = "-")
 ```
 
+**Group the dengue data by epidemiology week and combined name**
 ```{r}
 dengue <- dengue %>%
   group_by(WEEK,combined_location) %>%
@@ -98,6 +99,7 @@ dengue_sf <- left_join(tainan,dengue, by="combined_location") %>%
   select(11:13)
 ```
 
+**Drop geometry as will affect the filling up of missing values**
 ```{r}
 # Print count for location
 print(length(unique(dengue_sf$combined_location)))
@@ -105,7 +107,8 @@ dengue_sf <- st_drop_geometry(dengue_sf)
 print(dengue_sf[rowSums(is.na(dengue_sf)) > 0, ])
 ```
 
-```{r echo=FALSE}
+**Filling up missing values where all the locations with zero cases for some of the epidemilogy week**
+```{r}
 # Get unique locations
 unique_locations <- unique(dengue_sf$combined_location)
 
@@ -130,12 +133,12 @@ for (i in starting_value:(starting_value + num_iterations - 1)) {
 }
 ```
 
+**Removing unnecessary NA values after filling operation**
 ```{r}
 dengue_sf <- na.omit(dengue_sf)
 ```
 
 ## Creating a Time Series Cube
-
 ```{r}
 dengue_sf <- as_tibble(dengue_sf)
 CASES_st <- spacetime(dengue_sf, tainan,
@@ -312,6 +315,8 @@ cbg %>%
 ```
 :::
 
+Based on the results above, it's evident that the number of dengue cases in the five identified hotspots generally decreases after epidemiology week 40. There are slight downward but insignificant trends.
+
 # Performing Emerging Hotspot Analysis
 
 ```{r}
@@ -329,6 +334,8 @@ ggplot(data = ehsa,
   geom_bar() +
   theme(axis.text.x = element_text(size = 5))
 ```
+
+Figure above shows that Oscillating hot spot class has the high numbers of dengue cases.
 
 # Visualising EHSA
 
@@ -349,3 +356,10 @@ tm_shape(ehsa_sig) +
   tm_fill("classification") + 
   tm_borders(alpha = 0.4)
 ```
+
+# Conclusion
+
+In conclusion, the analysis of Dengue Fever outbreak distribution in Tainan City, Taiwan, reveals spatial and spatio-temporal dependency of the disease. Spatially, we observed significant clustering of dengue cases, with higher incidence rates concentrated in central Tainan and lower rates in peripheral areas. From August to October, consistent hotspot and coldspot patterns emerged, with hotspots centralized in Tainan and coldspots at its outskirts. However, from November onwards, we noticed a notable shift in the hotspot area towards the outer right corner of the city.
+
+Additionally, our analysis shows a decrease in dengue cases within identified hotspots after epidemiology week 40, although these downward trends were statistically insignificant. These findings underscore the importance of spatial and spatio-temporal analysis in comprehending dengue outbreak dynamics. Such insights enable targeted interventions and efficient resource allocation to curb disease spread.
+
