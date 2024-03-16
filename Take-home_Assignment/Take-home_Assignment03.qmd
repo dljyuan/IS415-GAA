@@ -1,0 +1,51 @@
+---
+title: "Take-Home Assignment 3: Prototyping Modules for Geospatial Analytics Shiny Application "
+author: "Jin Yuan"
+date: 03/15/2024
+date-modified: "last-modified"
+date-format: "DD/MM/YYYY"
+editor: visual
+format: html
+categories:
+  - Take-home Assignment
+title-block-categories: false
+execute: 
+  eval: true
+  echo: true
+  warning: false
+---
+
+# 1. Introduction
+Optimizing the distribution of recycling bins is essential for promoting sustainable waste management practices. This report focuses on the hotspot identification aspect of geospatial analysis to pinpoint areas with high concentrations of recycling bins (hotspots) and areas with low concentrations (cold spots) in Singapore. By identifying these spatial patterns, we aim to provide insights for targeted interventions to enhance recycling rates and optimize waste management strategies.
+
+# 2. Objective
+Our objective is to conduct hotspot identification analysis using geospatial analytics to identify areas of interest for policymakers and stakeholders. By leveraging global and local measures of spatial autocorrelation, we aim to pinpoint hotspots and cold spots of recycling bin distribution in Singapore, providing actionable insights for optimizing bin placement and promoting recycling behavior.
+
+# 3. Storyboard
+
+* Introduction: Provide an overview of the objective and significance of hotspot identification in optimizing recycling bin distribution.
+
+* Data Collection and Preprocessing: Gather location data of recycling bins from relevant sources and preprocess the data to ensure accuracy and consistency.
+
+* Hotspot Identification Analysis: Utilize global measures of spatial autocorrelation (e.g., Moran's I) and local indicators of spatial association (LISA) to identify hotspots and cold spots of recycling bin distribution.
+  * Calculate Moran's I to assess the overall clustering pattern of recycling bins.
+  * Conduct LISA analysis to identify statistically significant clusters of hotspots and cold spots.
+  
+* Interactive Visualization: Present the results of the hotspot analysis using interactive maps, highlighting areas of interest for targeted interventions.
+
+* Conclusion: Summarize the key findings of the hotspot identification analysis and their implications for waste management policies in Singapore.
+
+# 4. UI Design
+The user interface of the shiny application will feature:
+
+* Interactive Map: Displaying the spatial distribution of recycling bins and highlighting hotspots and cold spots. Users can zoom in/out and pan across the map to explore different areas.
+
+* Filters and Controls: Allowing users to customize the display by adjusting parameters such as bin type, and statistical significance level for hotspot identification.
+
+* Information Panels: Providing contextual information about the hotspot identification methodology and key findings. This includes explanations of Moran's I and LISA analysis and interpretation guidelines for the identified hotspots and cold spots.
+
+# 5. Prototype
+
+# 6. Conclusion
+The hotspot identification analysis provides valuable insights into the spatial distribution of recycling bins in Singapore. By pinpointing hotspots and cold spots, policymakers and stakeholders can prioritize interventions to optimize bin placement and promote recycling behavior.
+

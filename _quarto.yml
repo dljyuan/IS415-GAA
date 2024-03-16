@@ -61,6 +61,8 @@ website:
           href: "Take-home_Assignment/Take-home_Assignment02.html"
         - text: "Take-home Assignment 2: Part 2"
           href: "Take-home_Assignment/Take-home_Assignment02_2.html"
+        - text: "Take-home Assignment 3"
+          href: "Take-home_Assignment/Take-home_Assignment03.html"
         
     right:
       - text: Home
