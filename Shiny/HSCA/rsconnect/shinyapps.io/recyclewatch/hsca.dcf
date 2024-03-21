@@ -1,0 +1,12 @@
+name: hsca
+title:
+username: recyclewatch
+account: recyclewatch
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11553634
+bundleId: 8400786
+url: https://recyclewatch.shinyapps.io/hsca/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

@@ -16,36 +16,449 @@ execute:
 ---
 
 # 1. Introduction
+
 Optimizing the distribution of recycling bins is essential for promoting sustainable waste management practices. This report focuses on the hotspot identification aspect of geospatial analysis to pinpoint areas with high concentrations of recycling bins (hotspots) and areas with low concentrations (cold spots) in Singapore. By identifying these spatial patterns, we aim to provide insights for targeted interventions to enhance recycling rates and optimize waste management strategies.
 
 # 2. Objective
+
 Our objective is to conduct hotspot identification analysis using geospatial analytics to identify areas of interest for policymakers and stakeholders. By leveraging global and local measures of spatial autocorrelation, we aim to pinpoint hotspots and cold spots of recycling bin distribution in Singapore, providing actionable insights for optimizing bin placement and promoting recycling behavior.
 
 # 3. Storyboard
 
-* Introduction: Provide an overview of the objective and significance of hotspot identification in optimizing recycling bin distribution.
+-   Introduction: Provide an overview of the objective and significance of hotspot identification in optimizing recycling bin distribution.
 
-* Data Collection and Preprocessing: Gather location data of recycling bins from relevant sources and preprocess the data to ensure accuracy and consistency.
+-   Data Collection and Preprocessing: Gather location data of recycling bins from relevant sources and preprocess the data to ensure accuracy and consistency.
 
-* Hotspot Identification Analysis: Utilize global measures of spatial autocorrelation (e.g., Moran's I) and local indicators of spatial association (LISA) to identify hotspots and cold spots of recycling bin distribution.
-  * Calculate Moran's I to assess the overall clustering pattern of recycling bins.
-  * Conduct LISA analysis to identify statistically significant clusters of hotspots and cold spots.
-  
-* Interactive Visualization: Present the results of the hotspot analysis using interactive maps, highlighting areas of interest for targeted interventions.
+-   Hotspot Identification Analysis: Utilize global measures of spatial autocorrelation (e.g., Moran's I) and local indicators of spatial association (LISA) to identify hotspots and cold spots of recycling bin distribution.
 
-* Conclusion: Summarize the key findings of the hotspot identification analysis and their implications for waste management policies in Singapore.
+    -   Calculate Moran's I to assess the overall clustering pattern of recycling bins.
+    -   Conduct LISA analysis to identify statistically significant clusters of hotspots and cold spots.
+
+-   Interactive Visualization: Present the results of the hotspot analysis using interactive maps, highlighting areas of interest for targeted interventions.
+
+-   Conclusion: Summarize the key findings of the hotspot identification analysis and their implications for waste management policies in Singapore.
 
 # 4. UI Design
+
 The user interface of the shiny application will feature:
 
-* Interactive Map: Displaying the spatial distribution of recycling bins and highlighting hotspots and cold spots. Users can zoom in/out and pan across the map to explore different areas.
+-   Interactive Map: Displaying the spatial distribution of recycling bins and highlighting hotspots and cold spots. Users can zoom in/out and pan across the map to explore different areas.
 
-* Filters and Controls: Allowing users to customize the display by adjusting parameters such as bin type, and statistical significance level for hotspot identification.
+-   Filters and Controls: Allowing users to customize the display by adjusting parameters such as bin type, and statistical significance level for hotspot identification.
 
-* Information Panels: Providing contextual information about the hotspot identification methodology and key findings. This includes explanations of Moran's I and LISA analysis and interpretation guidelines for the identified hotspots and cold spots.
+-   Information Panels: Providing contextual information about the hotspot identification methodology and key findings. This includes explanations of Moran's I and LISA analysis and interpretation guidelines for the identified hotspots and cold spots.
 
-# 5. Prototype
+# 5. Data Wrangling & Analysis
 
-# 6. Conclusion
+```{r}
+pacman::p_load(sf, sp, sfdep, tmap, tidyverse, plotly)
+```
+*Blue Bin*
+```{r}
+bluebins <- st_read(dsn = "../data/take-home3", 
+                 layer = "RECYCLINGBINS")
+```
+*Master Plan Subzone*
+```{r}
+mpsz <- st_read(dsn = "../data/take-home3", 
+                 layer = "MPSZ-2019")
+```
+*E-Waste Bin*
+```{r eval=FALSE}
+ewbins <- read_csv("../data/take-home3/EWbins.csv")
+```
+
+```{r echo=FALSE}
+ewbins <- read_rds("../data/take-home3/ewbins.rds")
+```
+
+*Incentive Bin*
+```{r eval=FALSE}
+inbins <- read_csv("../data/take-home3/RVMbins.csv")
+```
+```{r echo=FALSE}
+inbins <- read_rds("../data/take-home3/inbins.rds")
+```
+
+*SG Population*
+```{r}
+pop <- read_csv("../data/take-home3/PopulationSG_2023.csv")
+```
+
+```{r}
+popdata <- pop %>%
+  group_by(PA, SZ, AG) %>%
+  summarise(`POP` = sum(`Pop`)) %>%
+  ungroup()%>%
+  pivot_wider(names_from=AG, 
+              values_from=POP) %>%
+mutate(`TOTAL`=rowSums(.[3:21])) %>%  
+  select(`PA`, `SZ`, 
+       `TOTAL`)
+```
+```{r}
+popdata <- popdata %>%
+  mutate_at(.vars = vars(PA, SZ), 
+          .funs = list(toupper))
+```
+
+```{r}
+pop <- left_join(mpsz, popdata,
+                          by = c("SUBZONE_N" = "SZ"))
+```
+
+```{r}
+# Check for invalid geometries
+invalid_geoms <- !st_is_valid(pop)
+# Fix invalid geometries
+pop[invalid_geoms, ] <- st_make_valid(pop[invalid_geoms, ])
+```
+
+```{r}
+pop <- st_transform(pop, 3414)
+bluebins <- st_transform(bluebins, 3414)
+ewbins <- st_transform(ewbins, 3414)
+inbins <- st_transform(inbins, 3414)
+```
+
+```{r}
+tm_shape(pop)+
+  tm_fill("TOTAL", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "Population") +
+  tm_layout(main.title = "Distribution of SG Population by planning subzone",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from Urban Redevelopment Authorithy (URA)\n and Population data from Department of Statistics DOS", 
+             position = c("left", "bottom"))
+```
+
+```{r}
+tm_shape(pop) +
+  tm_fill("TOTAL",
+          style = "quantile",
+          palette = "Blues",
+          thres.poly = 0) + 
+  tm_facets(by="REGION_N", 
+            free.coords=TRUE, 
+            drop.shapes=TRUE) +
+  tm_layout(legend.show = FALSE,
+            title.position = c("center", "center"), 
+            title.size = 20) +
+  tm_borders(alpha = 0.5)
+```
+
+```{r fig.width=15}
+tmap_mode('plot')
+tm_shape(pop)+
+  tm_polygons()+
+  tm_shape(bluebins)+
+  tm_symbols(size = 0.005, col = "blue", shape = 2)
+```
+
+```{r eval=FALSE}
+# Function to geocode using OpenStreetMap Nominatim API
+geocode_osm <- function(postal_codes) {
+  result <- lapply(postal_codes, function(code) {
+    url <- paste0("https://nominatim.openstreetmap.org/search?format=json&postalcode=", code, "&country=Singapore")
+    data <- jsonlite::fromJSON(url)
+    if (length(data) > 0) {
+      return(data[1, c("lat", "lon")])
+    } else {
+      return(NA)
+    }
+  })
+  result <- do.call(rbind, result)
+  return(result)
+}
+
+# Extract postal codes from the CSV data
+postal_codes <- ewbins$`Postal Code`
+
+# Geocode postal codes using OpenStreetMap Nominatim API
+geo_data_osm <- geocode_osm(postal_codes)
+
+# Bind latitude and longitude data back to the original data frame
+ewbins <- cbind(ewbins, geo_data_osm)
+```
+
+```{r eval=FALSE}
+# Identify rows with missing lat or lon
+missing_coords <- ewbins[is.na(ewbins$lat) | is.na(ewbins$lon), c("Postal Code", "lat", "lon")]
+
+# Print the rows with missing coordinates
+print(missing_coords)
+
+```
+
+```{r eval=FALSE}
+row_indices <- c(19, 21, 23, 62, 64, 71, 123, 142, 146, 153, 164)
+ewbins$lat[row_indices] <- c(1.353990, 
+                             1.369590, 
+                             1.285980, 
+                             1.3732, 
+                             1.3731, 
+                             1.3106,
+                             1.3247, 
+                             1.2832, 
+                             1.3335, 
+                             1.3625, 
+                             1.3840)  
+
+ewbins$lon[row_indices] <- c(103.944250, 
+                             103.846900, 
+                             103.827370, 
+                             103.8458, 
+                             103.9337, 
+                             103.8363,
+                             103.7468, 
+                             103.8058, 
+                             103.7403, 
+                             103.8347, 
+                             103.7451)
+```
+
+```{r eval=FALSE}
+# Convert to spatial points in WGS 84 (EPSG:4326)
+coordinates <- st_as_sf(ewbins, coords = c("lon", "lat"), crs = 4326)
+
+# Transform coordinates to SVY21 (EPSG:3414)
+ewbins <- st_transform(coordinates, 3414)
+```
+
+```{r}
+tmap_mode('view')
+tm_basemap("OpenStreetMap") + 
+  tm_shape(pop)+
+  tm_polygons(alpha = 0.5)+
+  tm_shape(ewbins)+
+  tm_symbols(size = 0.02, col = "green", shape = 19, scale = 3)+
+  tm_view(set.view = 10, set.zoom.limits = c(10,15))
+```
+
+
+```{r eval=FALSE}
+# Extract postal codes from the CSV data
+postal_codes <- inbins$`Postal Code`
+
+# Geocode postal codes using OpenStreetMap Nominatim API
+geo_data_osm <- geocode_osm(postal_codes)
+
+# Bind latitude and longitude data back to the original data frame
+inbins <- cbind(inbins, geo_data_osm)
+
+# Identify rows with missing lat or lon
+missing_coords <- inbins[is.na(inbins$lat) | is.na(inbins$lon), c("Postal Code", "lat", "lon")]
+
+# Print the rows with missing coordinates
+print(missing_coords)
+```
+```{r eval=FALSE}
+row_indices <- c(3, 8, 10, 12, 14, 24, 25, 26)
+inbins$lat[row_indices] <- c(1.37045, 
+                            1.32099,
+                            1.33306,
+                            1.35547,
+                            1.29948,
+                            1.34649,
+                            1.35878,
+                            1.39071)  
+
+inbins$lon[row_indices] <- c(103.88808,
+                             103.88775,
+                             103.96604,
+                             103.85110,
+                             103.84547,
+                             103.72905,
+                             103.75281,
+                             103.74852)
+```
+
+```{r eval=FALSE}
+# Convert to spatial points in WGS 84 (EPSG:4326)
+coordinates <- st_as_sf(inbins, coords = c("lon", "lat"), crs = 4326)
+
+# Transform coordinates to SVY21 (EPSG:3414)
+inbins <- st_transform(coordinates, 3414)
+```
+
+```{r eval=FALSE}
+subzone_matched <- st_intersection(bluebins, pop)
+subzone_matched <- st_drop_geometry(subzone_matched)
+joined_data <- left_join(pop, subzone_matched)
+```
+```{r eval=FALSE}
+joined_data_clean <- na.omit(joined_data)
+```
+
+```{r eval=FALSE}
+joined_data_clean <- joined_data[complete.cases(joined_data$ADDRESSSTR), ]
+```
+
+```{r eval=FALSE}
+grouped_data <- joined_data_clean %>%
+  group_by(SUBZONE_N, REGION_N) %>%
+  summarize(count = n())
+
+grouped_data <- st_drop_geometry(grouped_data)
+grouped_data <- left_join(pop, grouped_data)
+
+columns_to_keep <- c("SUBZONE_N", "REGION_N", "count")  
+
+grouped_data <- grouped_data[, columns_to_keep]
+
+grouped_data <- grouped_data %>%
+  mutate(count = ifelse(is.na(count), 0, count))
+```
+
+```{r eval=FALSE}
+grouped_data <- grouped_data %>% 
+  mutate(TYPE = "BLUEBIN")
+```
+
+```{r}
+#bluebins_hs <- write_rds(grouped_data, "../data/take-home3/bluebins_hs.rds")
+#ewbins_hs <- write_rds(grouped_data, "../data/take-home3/ewbins_hs.rds")
+#inbins_hs <- write_rds(grouped_data, "../data/take-home3/inbins_hs.rds")
+```
+
+
+```{r}
+bluebins_hs <- read_rds("../data/take-home3/bluebins_hs.rds")
+ewbins_hs <- read_rds("../data/take-home3/ewbins_hs.rds")
+inbins_hs <- read_rds("../data/take-home3/inbins_hs.rds")
+```
+
+
+```{r}
+tmap_mode("plot")
+tm_shape(bluebins_hs) +
+  tm_fill("count",
+          style = "equal",
+          palette = "Greens",
+          title = "Number of Bins") +
+  tm_layout(main.title = "Distribution of Blue Bins",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45,
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type = "8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha = 0.2)
+```
+```{r}
+tm_shape(bluebins_hs) +
+  tm_fill("count",
+          style = "equal",
+          palette = "Greens",
+          thres.poly = 0) + 
+  tm_facets(by="REGION_N", 
+            free.coords=TRUE, 
+            drop.shapes=TRUE) +
+  tm_layout(legend.show = FALSE,
+            title.position = c("center", "center"), 
+            title.size = 20) +
+  tm_borders(alpha = 0.5)
+```
+
+```{r}
+wm_q <- bluebins_hs %>%
+  mutate(nb = st_contiguity(geometry, queen = TRUE),
+         wt = st_weights(nb,
+                         style = "W",
+                         allow_zero = TRUE),
+         .before = 1) 
+wm_q
+```
+```{r}
+set.seed(1234)
+global_moran_perm(wm_q$count,
+                       wm_q$nb,
+                       wm_q$wt,
+                  zero.policy = TRUE,
+                  nsim = 999)
+```
+
+```{r}
+lisa <- wm_q %>% 
+  mutate(local_moran = local_moran(
+    count, nb, wt, zero.policy = TRUE, nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+```
+
+```{r eval=FALSE, echo=TRUE}
+write_rds(lisa, "../data/take-home3/lisa_blue.rds")
+```
+
+
+```{r}
+lisa_sig <- lisa  %>%
+  filter(p_ii < 0.05)
+
+tmap_mode("plot")
+tm_shape(lisa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.7) +
+tm_shape(lisa) +
+  tm_fill("mean") + 
+  tm_borders(alpha = 0.4)
+```
+
+```{r}
+wm_idw <- bluebins_hs %>%
+  mutate(nb = st_contiguity(geometry),
+         wts = st_inverse_distance(nb, geometry,
+                                   scale = 1,
+                                   alpha = 1),
+         .before = 1)
+```
+
+```{r}
+HCSA <- wm_idw %>% 
+  mutate(local_Gi = local_gstar_perm(
+    count, nb, wt, nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+```
+
+```{r}
+HCSA_sig <- HCSA  %>%
+  filter(p_sim < 0.05)
+
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(HCSA) +
+  tm_fill("gi_star") + 
+  tm_borders(alpha = 0.4)
+```
+
+# 6. Prototype
+
+Libraries Requird:
+
+* library(shiny)
+* library(tmap)
+* library(dplyr)
+* library(shinythemes)
+* library(leaflet)
+
+![Interactive Map](images/20240318_130454683_iOS.png)
+
+![HSCA/LISA Map](images/20240318_130426167_iOS.png)
+
+# 7. Conclusion
+
 The hotspot identification analysis provides valuable insights into the spatial distribution of recycling bins in Singapore. By pinpointing hotspots and cold spots, policymakers and stakeholders can prioritize interventions to optimize bin placement and promote recycling behavior.
-
