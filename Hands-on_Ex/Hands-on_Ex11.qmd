@@ -88,8 +88,7 @@ datatable(odbus6_9)
 
 We will save the output in rds format for future used.
 
-```{r}
-##| eval: false
+```{r eval=FALSE}
 write_rds(odbus6_9, "../data/rds/odbus6_9.rds")
 ```
 
@@ -132,7 +131,7 @@ mpsz
 
 The code chunk below will be used to write mpsz sf tibble data frame into an rds file for future use.
 
-```{r}
+```{r eval=FALSE}
 mpsz <- write_rds(mpsz, "../data/rds/mpsz.rds")
 ```
 
@@ -160,7 +159,7 @@ datatable(busstop_mpsz)
 
 Before moving to the next step, it is wise to save the output into rds format.
 
-```{r}
+```{r eval=FALSE}
 write_rds(busstop_mpsz, "../data/rds/busstop_mpsz.rds")  
 ```
 
@@ -219,7 +218,7 @@ od_data <- od_data %>%
 
 It is time to save the output into an rds file format.
 
-```{r}
+```{r eval=FALSE}
 write_rds(od_data, "../data/rds/od_data_fii.rds")
 ```
 
@@ -239,7 +238,7 @@ We will not plot the intra-zonal flows. The code chunk below will be used to rem
 od_data_fij <- od_data[od_data$ORIGIN_SZ!=od_data$DESTIN_SZ,]
 ```
 
-```{r}
+```{r eval=FALSE}
 write_rds(od_data_fij, "../data/rds/od_data_fij.rds")
 ```
 
