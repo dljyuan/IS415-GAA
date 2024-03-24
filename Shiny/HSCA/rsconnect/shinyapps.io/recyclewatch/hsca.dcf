@@ -5,8 +5,9 @@ account: recyclewatch
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11553634
-bundleId: 8400786
+bundleId: 8400879
 url: https://recyclewatch.shinyapps.io/hsca/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: app2.R
