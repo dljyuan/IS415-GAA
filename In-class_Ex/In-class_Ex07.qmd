@@ -7,13 +7,14 @@ date-format: "DD/MM/YYYY"
 editor: visual
 format: html
 categories:
-  - Hands-on Exercise
+  - In-class Exercise
 title-block-categories: false
 execute: 
   eval: true
   echo: true
   warning: false
 ---
+
 # Overview
 
 Predictive modelling uses statistical learning or machine learning techniques to predict outcomes. By and large, the event one wants to predict is in the future. However, a set of known outcome and predictors (also known as variables) will be used to calibrate the predictive models.
@@ -167,7 +168,6 @@ coords_train <- st_coordinates(train_sf)
 coords_test <- st_coordinates(test_sf)
 ```
 
-
 ```{r}
 set.seed(1234)
 rs_rp <- rpart(formula = RESALE_PRICE ~ FLOOR_AREA_SQM +
@@ -312,7 +312,6 @@ yardstick::rmse(test_pred,
                 rf_pred)
 ```
 
-
 ```{r}
 yardstick::rmse(test_pred,
                 RESALE_PRICE,
@@ -334,7 +333,6 @@ ggplot(data = test_pred,
            y = RESALE_PRICE)) +
   geom_point()
 ```
-
 
 ```{r}
 ggplot(data = test_pred,
