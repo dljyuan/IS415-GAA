@@ -53,17 +53,23 @@ The user interface of the shiny application will feature:
 ```{r}
 pacman::p_load(sf, sp, sfdep, tmap, tidyverse, plotly)
 ```
+
 *Blue Bin*
+
 ```{r}
 bluebins <- st_read(dsn = "../data/take-home3", 
                  layer = "RECYCLINGBINS")
 ```
+
 *Master Plan Subzone*
+
 ```{r}
 mpsz <- st_read(dsn = "../data/take-home3", 
                  layer = "MPSZ-2019")
 ```
+
 *E-Waste Bin*
+
 ```{r eval=FALSE}
 ewbins <- read_csv("../data/take-home3/EWbins.csv")
 ```
@@ -73,14 +79,17 @@ ewbins <- read_rds("../data/take-home3/ewbins.rds")
 ```
 
 *Incentive Bin*
+
 ```{r eval=FALSE}
 inbins <- read_csv("../data/take-home3/RVMbins.csv")
 ```
+
 ```{r echo=FALSE}
 inbins <- read_rds("../data/take-home3/inbins.rds")
 ```
 
 *SG Population*
+
 ```{r}
 pop <- read_csv("../data/take-home3/PopulationSG_2023.csv")
 ```
@@ -96,6 +105,7 @@ mutate(`TOTAL`=rowSums(.[3:21])) %>%
   select(`PA`, `SZ`, 
        `TOTAL`)
 ```
+
 ```{r}
 popdata <- popdata %>%
   mutate_at(.vars = vars(PA, SZ), 
@@ -244,7 +254,6 @@ tm_basemap("OpenStreetMap") +
   tm_view(set.view = 10, set.zoom.limits = c(10,15))
 ```
 
-
 ```{r eval=FALSE}
 # Extract postal codes from the CSV data
 postal_codes <- inbins$`Postal Code`
@@ -261,6 +270,7 @@ missing_coords <- inbins[is.na(inbins$lat) | is.na(inbins$lon), c("Postal Code",
 # Print the rows with missing coordinates
 print(missing_coords)
 ```
+
 ```{r eval=FALSE}
 row_indices <- c(3, 8, 10, 12, 14, 24, 25, 26)
 inbins$lat[row_indices] <- c(1.37045, 
@@ -295,6 +305,7 @@ subzone_matched <- st_intersection(bluebins, pop)
 subzone_matched <- st_drop_geometry(subzone_matched)
 joined_data <- left_join(pop, subzone_matched)
 ```
+
 ```{r eval=FALSE}
 joined_data_clean <- na.omit(joined_data)
 ```
@@ -330,13 +341,11 @@ grouped_data <- grouped_data %>%
 #inbins_hs <- write_rds(grouped_data, "../data/take-home3/inbins_hs.rds")
 ```
 
-
 ```{r}
-bluebins_hs <- read_rds("../data/take-home3/bluebins_hs.rds")
-ewbins_hs <- read_rds("../data/take-home3/ewbins_hs.rds")
-inbins_hs <- read_rds("../data/take-home3/inbins_hs.rds")
+bluebins_hs <- read_rds("../data/take-home3/bluebins_dist.rds")
+ewbins_hs <- read_rds("../data/take-home3/ewbins_dist.rds")
+inbins_hs <- read_rds("../data/take-home3/inbins_dist.rds")
 ```
-
 
 ```{r}
 tmap_mode("plot")
@@ -356,6 +365,7 @@ tm_shape(bluebins_hs) +
   tm_scale_bar() +
   tm_grid(alpha = 0.2)
 ```
+
 ```{r}
 tm_shape(bluebins_hs) +
   tm_fill("count",
@@ -380,6 +390,7 @@ wm_q <- bluebins_hs %>%
          .before = 1) 
 wm_q
 ```
+
 ```{r}
 set.seed(1234)
 global_moran_perm(wm_q$count,
@@ -400,7 +411,6 @@ lisa <- wm_q %>%
 ```{r eval=FALSE, echo=TRUE}
 write_rds(lisa, "../data/take-home3/lisa_blue.rds")
 ```
-
 
 ```{r}
 lisa_sig <- lisa  %>%
@@ -449,11 +459,11 @@ tm_shape(HCSA) +
 
 Libraries Requird:
 
-* library(shiny)
-* library(tmap)
-* library(dplyr)
-* library(shinythemes)
-* library(leaflet)
+-   library(shiny)
+-   library(tmap)
+-   library(dplyr)
+-   library(shinythemes)
+-   library(leaflet)
 
 ![Interactive Map](images/20240318_130454683_iOS.png)
 

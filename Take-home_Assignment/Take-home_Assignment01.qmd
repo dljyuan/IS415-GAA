@@ -9,6 +9,11 @@ format: html
 categories:
   - Take-home Assignment
 title-block-categories: false
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
 ---
 
 # Background
@@ -63,6 +68,7 @@ df10 <- arrow::read_parquet("/dljyuan/IS415-GAA/data/GrabPosisi/part-00009.parqu
 ```
 
 **Convert time variable to datetime format**
+
 ```{r eval=FALSE}
 df$pingtimestamp <- as_datetime(df$pingtimestamp)
 df2$pingtimestamp <- as_datetime(df2$pingtimestamp)
@@ -77,6 +83,7 @@ df10$pingtimestamp <- as_datetime(df10$pingtimestamp)
 ```
 
 **Extracting origin location (Pickup Points)**
+
 ```{r eval=FALSE}
 # Code repeated for all the other df
 origin_df <- df %>%
@@ -89,7 +96,9 @@ origin_df <- df %>%
          start_hr = factor(hour(pingtimestamp)),
          day = factor(mday(pingtimestamp)))
 ```
+
 **Combine all df together**
+
 ```{r eval=FALSE}
 combined_origin_df <- rbind(origin_df, origin_df2,origin_df3,origin_df4,origin_df5,origin_df6,origin_df7,origin_df8,origin_df9,origin_df10)
 ```
@@ -105,6 +114,7 @@ origin_df <- read_rds("/dljyuan/IS415-GAA/data/rds/origin_df.rds")
 ::: callout-note
 For in class assignment, we are not going to combine the 10 different parquet files but only used one of them for entire analysis
 :::
+
 **Boundary Data (Coastal Outline)**
 
 ```{r}
@@ -233,7 +243,9 @@ tm_shape(sg_sf) +
 any(duplicated(origin_ppp))
 sum(multiplicity(origin_ppp) > 1)
 ```
+
 **Removing Duplicate Points**
+
 ```{r}
 origin_ppp <- rjitter(origin_ppp, 
                              retry=TRUE, 
@@ -256,7 +268,6 @@ plot(origin_ppp)
 ```
 
 ![](/image/THA-16.png)
-
 
 # Exploratory Data Analysis
 
@@ -600,29 +611,29 @@ lixels_jg = read_rds("/dljyuan/IS415-GAA/data/rds/lixels_jg.rds")
 
 ::: {.panel-tabset .nav-pills}
 ## Changi
+
 ```{r eval=TRUE}
-tmap_mode('view')
+tmap_mode('plot')
 tm_shape(lixels_ch)+
   tm_lines(col="density")+
 tm_shape(origin_ch)+
   tm_dots()
 ```
 
-
-
 ## Town
+
 ```{r eval=TRUE}
-tmap_mode('view')
+tmap_mode('plot')
 tm_shape(lixels_town)+
   tm_lines(col="density")+
 tm_shape(origin_town)+
   tm_dots()
 ```
 
-
 ## Woodlands
+
 ```{r}
-tmap_mode('view')
+tmap_mode('plot')
 tm_shape(lixels_wood)+
   tm_lines(col="density")+
 tm_shape(origin_wood)+
@@ -630,8 +641,9 @@ tm_shape(origin_wood)+
 ```
 
 ## Choa Chu Kang
+
 ```{r eval=TRUE}
-tmap_mode('view')
+tmap_mode('plot')
 tm_shape(lixels_cck_bp)+
   tm_lines(col="density")+
 tm_shape(origin_cck_bp)+
@@ -639,8 +651,9 @@ tm_shape(origin_cck_bp)+
 ```
 
 ## Jurong
+
 ```{r eval=TRUE}
-tmap_mode('view')
+tmap_mode('plot')
 tm_shape(lixels_jg)+
   tm_lines(col="density")+
 tm_shape(origin_jg)+
@@ -649,11 +662,9 @@ tm_shape(origin_jg)+
 :::
 
 ::: callout-note
-Enhance clarity by hovering over the map icon and deselecting 'origin_*' to reveal a more distinct concentration of pick-up points.
+Enhance clarity by hovering over the map icon and deselecting 'origin\_\*' to reveal a more distinct concentration of pick-up points.
 :::
 
 # Conclusion
+
 The Grab Posisi dataset has provided numerous intriguing findings through the application of Spatial Point Analysis. In the course of the analysis, the findings can be used to assist drivers in identifying optimal areas for passenger pick-ups, ensuring a more efficient use of their working time. Furthermore, the analysis has the potential to reveal insights into the factors contributing to the various traffic hotspots in Singapore.
-
-
-

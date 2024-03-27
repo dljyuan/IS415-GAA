@@ -11,7 +11,7 @@ ui <- fluidPage(
     titlePanel("LISA Map"),
     sidebarLayout(
       sidebarPanel(
-        sliderInput("threshold", "Significant Level:", min = 0, max = 0.5, value = 0.05, step = 0.01),
+        sliderInput("threshold", "Significant Level:", min = 0, max = 0.5, value = 0.05, step = 0.1),
         selectInput("fill_var", "Bin Type:", choices = c("Blue Bins", "E-Waste Bins", "Incentive Bins"), selected = "Blue Bins")
       ),
       mainPanel(
